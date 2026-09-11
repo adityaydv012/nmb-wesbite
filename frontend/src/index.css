@@ -1,0 +1,861 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* =========================================================
+   NARAYAN MISTHAN BHANDAR
+   GLOBAL DESIGN SYSTEM
+========================================================= */
+
+:root {
+  --nmb-purple: #340c48;
+  --nmb-navbar-text: #4c444e;
+
+  --nmb-cream: #fff9f2;
+  --nmb-lavender: #f9efff;
+  --nmb-gold: #d8b36a;
+  --nmb-white: #ffffff;
+
+  --font-display: "Playfair Display", serif;
+  --font-body: "Montserrat", sans-serif;
+
+  --container-width: 1280px;
+  --container-padding: 32px;
+
+  --navbar-height: 96px;
+  --ticker-height: 47px;
+}
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  color: var(--nmb-purple);
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* =========================================================
+   COMMON CONTAINER
+========================================================= */
+
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-inline: auto;
+  padding-inline: var(--container-padding);
+}
+
+/* =========================================================
+   TICKER
+========================================================= */
+
+.nmb-ticker {
+  position: relative;
+  width: 100%;
+  height: var(--ticker-height);
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+
+  background: var(--nmb-purple);
+  color: var(--nmb-white);
+
+  white-space: nowrap;
+}
+
+.nmb-ticker-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  will-change: transform;
+}
+
+.nmb-ticker-track span {
+  display: inline-block;
+
+  padding-right: 70px;
+
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1;
+
+  letter-spacing: -0.01em;
+  color: var(--nmb-white);
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.nmb-hero {
+  position: relative;
+
+  display: flex;
+
+  width: 100%;
+  height: calc(100vh - 139px);
+
+  min-height: 620px;
+
+  align-items: center;
+
+  overflow: hidden;
+
+  background: #340c48;
+}
+
+/* =========================================================
+   HERO BACKGROUND
+========================================================= */
+
+.nmb-hero-background {
+  position: absolute;
+  inset: 0;
+
+  z-index: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: none;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+/* =========================================================
+   HERO OVERLAY
+========================================================= */
+
+.nmb-hero-overlay {
+  position: absolute;
+  inset: 0;
+
+  z-index: 1;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: none;
+
+  pointer-events: none;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+/* =========================================================
+   HERO CONTAINER
+
+   THIS CONTROLS THE HORIZONTAL POSITION
+========================================================= */
+
+.nmb-hero-container {
+  position: relative;
+  z-index: 10;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  padding-left: 135px;
+  padding-right: 62px;
+}
+
+/* =========================================================
+   HERO CONTENT
+
+   THIS IS THE IMPORTANT PART
+========================================================= */
+
+.nmb-hero-content {
+  width: 100%;
+  max-width: 650px;
+
+  margin-left: 0;
+
+  transform: translateY(-15px);
+}
+
+/* =========================================================
+   HERO TITLE
+========================================================= */
+
+.nmb-hero-title {
+  margin: 0;
+
+  font-family: var(--font-display);
+
+  font-size: 72px;
+  font-weight: 600;
+
+  line-height: 0.98;
+
+  letter-spacing: -0.025em;
+
+  color: #ffffff;
+}
+
+/* =========================================================
+   HERO DESCRIPTION
+========================================================= */
+
+.nmb-hero-description {
+  margin: 0;
+
+  margin-top: 28px;
+
+  max-width: 570px;
+
+  font-family: var(--font-body);
+
+  font-size: 15px;
+  font-weight: 500;
+
+  line-height: 1.65;
+
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* =========================================================
+   BUTTON ROW
+========================================================= */
+
+.nmb-hero-buttons {
+  display: flex;
+
+  align-items: center;
+
+  gap: 24px;
+
+  margin-top: 32px;
+}
+
+/* =========================================================
+   PRIMARY BUTTON
+========================================================= */
+
+.nmb-hero-primary-button {
+  display: inline-flex;
+
+  width: 150px;
+  height: 50px;
+  padding: 5px;
+
+  flex-shrink: 0;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border-radius: 5px;
+
+  background: #340c48;
+
+  font-family: var(--font-body);
+
+  font-size: 10px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
+
+  color: #ffffff;
+
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+
+  transition:
+    background-color 300ms ease,
+    transform 300ms ease;
+}
+
+.nmb-hero-primary-button:hover {
+  background: #260832;
+}
+
+/* Arrow */
+
+.nmb-hero-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* =========================================================
+   SECONDARY BUTTON
+========================================================= */
+
+.nmb-hero-secondary-button {
+  display: inline-flex;
+
+  width: 120px;
+  height: 50px;
+
+  flex-shrink: 0;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #d8b36a;
+
+  border-radius: 5px;
+
+  font-family: var(--font-body);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
+
+  color: #ffffff;
+
+  transition:
+    background-color 300ms ease,
+    transform 300ms ease;
+}
+
+.nmb-hero-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================================
+   SCROLL INDICATOR
+========================================================= */
+
+.nmb-hero-scroll {
+  position: absolute;
+
+  bottom: 24px;
+  left: 50%;
+
+  z-index: 10;
+
+  display: flex;
+
+  transform: translateX(-50%);
+
+  flex-direction: column;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.nmb-hero-scroll-text {
+  font-family: var(--font-body);
+
+  font-size: 9px;
+  font-weight: 500;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.25em;
+
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nmb-hero-scroll-arrow {
+  font-size: 14px;
+  line-height: 1;
+
+  color: #ffffff;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1024px) {
+  .nmb-hero-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .nmb-hero-content {
+    margin-left: 0;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+  .nmb-hero {
+    height: calc(100vh - 116px);
+    min-height: 600px;
+  }
+
+  .nmb-hero-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .nmb-hero-title {
+    font-size: 62px;
+  }
+
+  .nmb-hero-description {
+    margin-top: 24px;
+    font-size: 15px;
+  }
+
+  .nmb-hero-buttons {
+    margin-top: 28px;
+    gap: 20px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .nmb-hero {
+    min-height: 560px;
+  }
+
+  .nmb-hero-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .nmb-hero-title {
+    font-size: 46px;
+  }
+
+  .nmb-hero-description {
+    font-size: 14px;
+  }
+
+  .nmb-hero-buttons {
+    gap: 16px;
+  }
+}
+
+/* =========================================================
+   FIXED NAVBAR OFFSET
+========================================================= */
+
+.page-content {
+  padding-top: var(--navbar-height);
+}
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+::selection {
+  background: var(--nmb-purple);
+  color: var(--nmb-white);
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--nmb-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--nmb-purple);
+  border-radius: 999px;
+}
+
+/* =========================================================
+   TICKER RESPONSIVE
+========================================================= */
+
+@media (max-width: 1024px) {
+  :root {
+    --container-padding: 24px;
+    --navbar-height: 88px;
+    --ticker-height: 43px;
+  }
+
+  .nmb-ticker-track span {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 20px;
+    --navbar-height: 76px;
+    --ticker-height: 40px;
+  }
+
+  .nmb-ticker-track span {
+    font-size: 21px;
+    padding-right: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --container-padding: 16px;
+    --navbar-height: 72px;
+    --ticker-height: 38px;
+  }
+
+  .nmb-ticker-track span {
+    font-size: 19px;
+    padding-right: 40px;
+  }
+}
+/* =========================================================
+   CURATED COLLECTIONS
+   ========================================================= */
+
+.nmb-collections-section {
+  width: 100%;
+  background: var(--nmb-cream);
+  padding: 64px 0;
+}
+
+/*
+  IMPORTANT:
+  This is the actual centered container.
+
+  1088px content width
+  auto left/right margins
+*/
+.nmb-collections-container {
+  width: 1088px;
+  max-width: calc(100% - 64px);
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* =========================================================
+   HEADING
+   ========================================================= */
+
+.nmb-collections-heading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.nmb-collections-heading span {
+  display: block;
+  width: 64px;
+  height: 1px;
+  flex-shrink: 0;
+  background: var(--nmb-gold);
+}
+
+.nmb-collections-heading h2 {
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--nmb-purple);
+}
+
+/* =========================================================
+   COLLECTION GRID
+
+   ┌───────────────────────┬─────────────┬─────────────┐
+   │                       │   LADDU     │ MILK SWEETS │
+   │                       ├─────────────┼─────────────┤
+   │      KAJU SWEETS      │ BENGALI     │ DRY FRUIT   │
+   │                       │ SWEETS      │ SWEETS      │
+   └───────────────────────┴─────────────┴─────────────┘
+
+   Total width = 1088px
+   ========================================================= */
+
+.nmb-collections-grid {
+  width: 100%;
+  display: grid;
+
+  grid-template-columns:
+    2fr
+    1fr
+    1fr;
+
+  grid-template-rows:
+    1fr
+    1fr;
+
+  gap: 12px;
+}
+
+/* =========================================================
+   LARGE CARD
+   ========================================================= */
+
+.nmb-collection-large-wrapper {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  min-width: 0;
+}
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.nmb-collection-card {
+  position: relative;
+  width: 100%;
+  height: 184px;
+
+  overflow: hidden;
+  border-radius: 10px;
+
+  background: #eee5dc;
+  isolation: isolate;
+}
+
+.nmb-collection-card-large {
+  height: 376px;
+}
+
+/* =========================================================
+   IMAGE
+   ========================================================= */
+
+.nmb-collection-image {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: none;
+
+  object-fit: cover;
+  object-position: center;
+
+  display: block;
+
+  transition: transform 700ms ease-out;
+}
+
+.nmb-collection-card:hover .nmb-collection-image {
+  transform: scale(1.04);
+}
+
+/* =========================================================
+   GRADIENT
+   ========================================================= */
+
+.nmb-collection-gradient {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(52, 12, 72, 0.90) 0%,
+      rgba(52, 12, 72, 0.20) 48%,
+      transparent 100%
+    );
+
+  z-index: 1;
+}
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.nmb-collection-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 16px 18px;
+
+  z-index: 2;
+}
+
+.nmb-collection-label h3 {
+  margin: 0;
+
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.15;
+
+  color: #ffffff;
+}
+
+.nmb-collection-card-large .nmb-collection-label h3 {
+  font-size: 20px;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .nmb-collections-container {
+    width: calc(100% - 48px);
+    max-width: none;
+  }
+
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+  .nmb-collections-section {
+    padding: 48px 0;
+  }
+
+  .nmb-collections-container {
+    width: calc(100% - 40px);
+    max-width: none;
+  }
+
+  .nmb-collections-heading {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .nmb-collections-heading span {
+    width: 36px;
+  }
+
+  .nmb-collections-heading h2 {
+    font-size: 28px;
+  }
+
+  .nmb-collections-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 12px;
+  }
+
+  .nmb-collection-large-wrapper {
+    grid-column: 1 / 3;
+    grid-row: auto;
+  }
+
+  .nmb-collection-card-large {
+    height: 340px;
+  }
+
+  .nmb-collection-card {
+    height: 180px;
+  }
+
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .nmb-collections-container {
+    width: calc(100% - 32px);
+  }
+
+  .nmb-collections-heading {
+    gap: 10px;
+  }
+
+  .nmb-collections-heading span {
+    width: 28px;
+  }
+
+  .nmb-collections-heading h2 {
+    font-size: 24px;
+  }
+
+  .nmb-collections-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nmb-collection-large-wrapper {
+    grid-column: 1;
+  }
+
+  .nmb-collection-card-large {
+    height: 300px;
+  }
+
+  .nmb-collection-card {
+    height: 180px;
+  }
+
+}
+

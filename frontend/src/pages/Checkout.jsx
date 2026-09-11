@@ -1,0 +1,921 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Loader2,
+  MapPin,
+  ShoppingBag,
+} from "lucide-react";
+
+import Navbar from "../components/layout/Navbar";
+import Footer from "../components/layout/Footer";
+import Login from "../components/auth/Login";
+import { useCart } from "../context/CartContext";
+import {
+  addAddress,
+  getAddresses,
+  getProfile,
+  createOrder,
+} from "../services/api";
+
+const EMPTY_ADDRESS = {
+  houseNo: "",
+  area: "",
+  city: "",
+  state: "",
+  pinCode: "",
+};
+
+export default function Checkout() {
+  const navigate = useNavigate();
+
+  const { cartItems, cartTotal, clearCart } = useCart();
+
+  const [profile, setProfile] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [placingOrder, setPlacingOrder] = useState(false);
+
+  const [showLogin, setShowLogin] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+
+  const [placedOrder, setPlacedOrder] = useState(null);
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [selectedAddressId, setSelectedAddressId] =
+    useState("");
+
+  const [addressForm, setAddressForm] =
+    useState(EMPTY_ADDRESS);
+
+  const [showNewAddress, setShowNewAddress] =
+    useState(false);
+
+  const [paymentMethod, setPaymentMethod] =
+    useState("cod");
+
+  const subtotal = Number(cartTotal || 0);
+
+  const gst = useMemo(
+    () => Math.round(subtotal * 0.05),
+    [subtotal]
+  );
+
+  const deliveryCharge = 0;
+
+  const grandTotal =
+    subtotal + gst + deliveryCharge;
+
+  useEffect(() => {
+    const token = localStorage.getItem("nmb_token");
+
+    if (!token) {
+      setLoading(false);
+      setShowLogin(true);
+      return;
+    }
+
+    loadCheckoutData();
+  }, []);
+
+  const getAddressId = (address) => {
+    return String(address?._id || address?.id || "");
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return "";
+
+    return [
+      address.houseNo,
+      address.area,
+      address.city,
+      address.state,
+      address.pinCode ||
+        address.pincode ||
+        address.postalCode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  const loadCheckoutData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const [profileResponse, addressResponse] =
+        await Promise.all([
+          getProfile(),
+          getAddresses(),
+        ]);
+
+      const user =
+        profileResponse?.user ||
+        profileResponse?.profile ||
+        profileResponse ||
+        null;
+
+      const savedAddresses =
+        addressResponse?.addresses ||
+        addressResponse?.data ||
+        [];
+
+      const validAddresses = Array.isArray(
+        savedAddresses
+      )
+        ? savedAddresses
+        : [];
+
+      setProfile(user);
+      setAddresses(validAddresses);
+
+      const defaultAddress =
+        validAddresses.find(
+          (address) =>
+            address?.isDefault === true ||
+            address?.default === true
+        ) || validAddresses[0];
+
+      if (defaultAddress) {
+        setSelectedAddressId(
+          getAddressId(defaultAddress)
+        );
+      }
+    } catch (requestError) {
+      console.error(
+        "Failed to load checkout data:",
+        requestError
+      );
+
+      setError(
+        requestError.message ||
+          "Unable to load checkout details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoginSuccess = async () => {
+    setShowLogin(false);
+    await loadCheckoutData();
+  };
+
+  const handleAddressInput = (event) => {
+    const { name, value } = event.target;
+
+    setAddressForm((currentForm) => ({
+      ...currentForm,
+      [name]:
+        name === "pinCode"
+          ? value.replace(/\D/g, "").slice(0, 6)
+          : value,
+    }));
+  };
+
+  const handleSaveAddress = async () => {
+    const cleanedAddress = {
+      houseNo: addressForm.houseNo.trim(),
+      area: addressForm.area.trim(),
+      city: addressForm.city.trim(),
+      state: addressForm.state.trim(),
+      pinCode: addressForm.pinCode.trim(),
+    };
+
+    if (
+      !cleanedAddress.houseNo ||
+      !cleanedAddress.area ||
+      !cleanedAddress.city ||
+      !cleanedAddress.state ||
+      !cleanedAddress.pinCode
+    ) {
+      setError("Please fill in all address fields.");
+      return;
+    }
+
+    if (!/^\d{6}$/.test(cleanedAddress.pinCode)) {
+      setError("Please enter a valid 6-digit PIN code.");
+      return;
+    }
+
+    const customerName =
+      profile?.fullName ||
+      profile?.name ||
+      "";
+
+    const customerPhone =
+      profile?.phone ||
+      profile?.mobileNumber ||
+      profile?.number ||
+      "";
+
+    try {
+      setError("");
+      setSuccess("");
+
+      const response = await addAddress({
+        fullName: customerName,
+        phone: customerPhone,
+        ...cleanedAddress,
+        pincode: cleanedAddress.pinCode,
+      });
+
+      const newAddress =
+        response?.address ||
+        response?.data ||
+        null;
+
+      await loadCheckoutData();
+
+      if (newAddress) {
+        setSelectedAddressId(
+          getAddressId(newAddress)
+        );
+      }
+
+      setAddressForm(EMPTY_ADDRESS);
+      setShowNewAddress(false);
+      setSuccess("Address saved successfully.");
+    } catch (requestError) {
+      console.error(
+        "Failed to save checkout address:",
+        requestError
+      );
+
+      setError(
+        requestError.message ||
+          "Unable to save this address."
+      );
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    setError("");
+    setSuccess("");
+
+    const token = localStorage.getItem("nmb_token");
+
+    if (!token) {
+      setShowLogin(true);
+      return;
+    }
+
+    if (!cartItems.length) {
+      setError("Your cart is empty.");
+      return;
+    }
+
+    const selectedAddress = addresses.find(
+      (address) =>
+        getAddressId(address) === selectedAddressId
+    );
+
+    if (!selectedAddress) {
+      setError("Please select a delivery address.");
+      return;
+    }
+
+    const customerName =
+      profile?.fullName ||
+      profile?.name ||
+      "";
+
+    const customerPhone =
+      profile?.phone ||
+      profile?.mobileNumber ||
+      profile?.number ||
+      "";
+
+    if (!customerName || !customerPhone) {
+      setError(
+        "Customer details are missing. Please update your profile."
+      );
+      return;
+    }
+
+    try {
+      setPlacingOrder(true);
+
+      const orderPayload = {
+        customerName,
+        customerPhone,
+
+        deliveryAddress: {
+          houseNo: selectedAddress.houseNo || "",
+          area: selectedAddress.area || "",
+          city: selectedAddress.city || "",
+          state: selectedAddress.state || "",
+          pinCode:
+            selectedAddress.pinCode ||
+            selectedAddress.pincode ||
+            selectedAddress.postalCode ||
+            "",
+        },
+
+        items: cartItems.map((item) => ({
+          productId: item.productId || "",
+          cartId: item.cartId || "",
+          name: item.name || "",
+          description: item.description || "",
+          image: item.image || "",
+          category: item.category || "",
+          weight: item.weight || "",
+          price: Number(item.price || 0),
+          quantity: Number(item.quantity || 0),
+          itemTotal:
+            Number(item.price || 0) *
+            Number(item.quantity || 0),
+        })),
+
+        subtotal,
+        gst,
+        deliveryCharge,
+        totalAmount: grandTotal,
+        paymentMethod,
+      };
+
+      const response = await createOrder(orderPayload);
+
+      const createdOrder =
+        response?.order ||
+        response?.data ||
+        response;
+
+      if (!createdOrder) {
+        throw new Error(
+          "Order was not created. Please try again."
+        );
+      }
+
+      /*
+       * Save the order before clearing the cart.
+       * This keeps the popup information available
+       * after cartTotal becomes zero.
+       */
+      setPlacedOrder({
+        ...createdOrder,
+        totalAmount:
+          Number(
+            createdOrder.totalAmount ??
+              orderPayload.totalAmount
+          ),
+        paymentMethod:
+          createdOrder.paymentMethod ||
+          paymentMethod,
+      });
+
+      /*
+       * Clear the cart only after the backend
+       * successfully creates the order.
+       */
+      clearCart();
+
+      /*
+       * Show the success popup on the same page.
+       * Do not navigate immediately.
+       */
+      setShowOrderSuccess(true);
+    } catch (requestError) {
+      console.error(
+        "Failed to place order:",
+        requestError
+      );
+
+      setError(
+        requestError.message ||
+          "Unable to place your order. Please try again."
+      );
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
+
+  const handleCloseSuccess = () => {
+    setShowOrderSuccess(false);
+    navigate("/");
+  };
+
+  const handleViewOrders = () => {
+    setShowOrderSuccess(false);
+    navigate("/orders");
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+
+        <main className="flex min-h-[60vh] items-center justify-center bg-[#FFF9F2]">
+          <div className="flex items-center gap-3 text-[#340C48]">
+            <Loader2
+              size={20}
+              className="animate-spin"
+            />
+            Loading checkout...
+          </div>
+        </main>
+
+        <Footer />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navbar />
+
+      <main className="min-h-screen bg-[#FFF9F2] px-4 pb-20 pt-12 sm:px-6 sm:pt-16">
+        <div className="mx-auto max-w-[1180px]">
+          <Link
+            to="/cart"
+            className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#340C48] transition hover:text-[#C9A45C]"
+          >
+            <ArrowLeft size={16} />
+            Back to Cart
+          </Link>
+
+          <div className="mt-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#C9A45C]">
+              Secure Checkout
+            </p>
+
+            <h1 className="mt-3 font-[var(--font-display)] text-[38px] leading-tight text-[#340C48] sm:text-[48px]">
+              Complete Your Order
+            </h1>
+
+            <p className="mt-3 text-[13px] leading-6 text-[#6E6670] sm:text-[14px]">
+              Confirm your delivery details and payment
+              method before placing your order.
+            </p>
+          </div>
+
+          {error && (
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-[13px] text-green-700">
+              {success}
+            </div>
+          )}
+
+          <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <section className="space-y-6">
+              {/* Delivery Address */}
+              <div className="rounded-[16px] border border-[#E9DFE9] bg-white p-5 shadow-[0_8px_25px_rgba(52,12,72,0.04)] sm:p-7">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EBD8] text-[#A77D32]">
+                    <MapPin size={18} />
+                  </div>
+
+                  <div>
+                    <h2 className="font-[var(--font-display)] text-[23px] text-[#340C48]">
+                      Delivery Address
+                    </h2>
+
+                    <p className="mt-1 text-[12px] text-[#6E6670]">
+                      Select where you want your sweets
+                      delivered.
+                    </p>
+                  </div>
+                </div>
+
+                {addresses.length > 0 ? (
+                  <div className="mt-6 space-y-3">
+                    {addresses.map((address, index) => {
+                      const addressId =
+                        getAddressId(address);
+
+                      const selected =
+                        selectedAddressId === addressId;
+
+                      return (
+                        <button
+                          key={addressId || index}
+                          type="button"
+                          onClick={() =>
+                            setSelectedAddressId(
+                              addressId
+                            )
+                          }
+                          className={`w-full rounded-xl border p-4 text-left transition ${
+                            selected
+                              ? "border-[#340C48] bg-[#F8F1F8]"
+                              : "border-[#E9DFE9] bg-white hover:border-[#C9A45C]"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span
+                              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                                selected
+                                  ? "border-[#340C48] bg-[#340C48] text-white"
+                                  : "border-[#C8BCCB]"
+                              }`}
+                            >
+                              {selected && (
+                                <CheckCircle2
+                                  size={13}
+                                />
+                              )}
+                            </span>
+
+                            <div>
+                              <p className="text-[13px] font-semibold text-[#340C48]">
+                                Address {index + 1}
+                              </p>
+
+                              <p className="mt-1 text-[12px] leading-5 text-[#6E6670]">
+                                {formatAddress(address)}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-6 rounded-xl border border-dashed border-[#DCCFDF] px-4 py-5 text-[13px] text-[#6E6670]">
+                    No saved address found. Add a delivery
+                    address to continue.
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewAddress(!showNewAddress);
+                    setError("");
+                  }}
+                  className="mt-5 text-[12px] font-semibold text-[#340C48] hover:text-[#C9A45C]"
+                >
+                  {showNewAddress
+                    ? "Cancel adding address"
+                    : "+ Add New Address"}
+                </button>
+
+                {showNewAddress && (
+                  <div className="mt-5 border-t border-[#EEE6EE] pt-5">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {[
+                        {
+                          name: "houseNo",
+                          label: "House / Flat / Building",
+                        },
+                        {
+                          name: "area",
+                          label: "Area / Street",
+                        },
+                        {
+                          name: "city",
+                          label: "City",
+                        },
+                        {
+                          name: "state",
+                          label: "State",
+                        },
+                        {
+                          name: "pinCode",
+                          label: "PIN Code",
+                        },
+                      ].map((field) => (
+                        <div
+                          key={field.name}
+                          className={
+                            field.name === "pinCode"
+                              ? "sm:col-span-2"
+                              : ""
+                          }
+                        >
+                          <label
+                            htmlFor={field.name}
+                            className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
+                          >
+                            {field.label}
+                          </label>
+
+                          <input
+                            id={field.name}
+                            name={field.name}
+                            value={
+                              addressForm[field.name]
+                            }
+                            onChange={
+                              handleAddressInput
+                            }
+                            maxLength={
+                              field.name === "pinCode"
+                                ? 6
+                                : undefined
+                            }
+                            inputMode={
+                              field.name === "pinCode"
+                                ? "numeric"
+                                : "text"
+                            }
+                            className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveAddress}
+                      className="mt-5 rounded-lg bg-[#340C48] px-5 py-3 text-[12px] font-semibold text-white transition hover:bg-[#4B1D63]"
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Method */}
+              <div className="rounded-[16px] border border-[#E9DFE9] bg-white p-5 shadow-[0_8px_25px_rgba(52,12,72,0.04)] sm:p-7">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F0E9F2] text-[#340C48]">
+                    <ShoppingBag size={18} />
+                  </div>
+
+                  <div>
+                    <h2 className="font-[var(--font-display)] text-[23px] text-[#340C48]">
+                      Payment Method
+                    </h2>
+
+                    <p className="mt-1 text-[12px] text-[#6E6670]">
+                      Choose how you want to pay.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#E9DFE9] p-4">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cod"
+                      checked={paymentMethod === "cod"}
+                      onChange={(event) =>
+                        setPaymentMethod(
+                          event.target.value
+                        )
+                      }
+                    />
+
+                    <span>
+                      <span className="block text-[13px] font-semibold text-[#340C48]">
+                        Cash on Delivery
+                      </span>
+
+                      <span className="mt-1 block text-[11px] text-[#6E6670]">
+                        Pay when your order arrives.
+                      </span>
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#E9DFE9] p-4">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="online"
+                      checked={
+                        paymentMethod === "online"
+                      }
+                      onChange={(event) =>
+                        setPaymentMethod(
+                          event.target.value
+                        )
+                      }
+                    />
+
+                    <span>
+                      <span className="block text-[13px] font-semibold text-[#340C48]">
+                        Online Payment
+                      </span>
+
+                      <span className="mt-1 block text-[11px] text-[#6E6670]">
+                        Online payment integration can be
+                        connected next.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            {/* Order Summary */}
+            <aside className="h-fit rounded-[16px] border border-[#E9DFE9] bg-white p-5 shadow-[0_8px_25px_rgba(52,12,72,0.04)] sm:p-7 lg:sticky lg:top-28">
+              <h2 className="font-[var(--font-display)] text-[24px] text-[#340C48]">
+                Order Summary
+              </h2>
+
+              <div className="mt-6 space-y-4">
+                {cartItems.map((item, index) => (
+                  <div
+                    key={item.cartId || item.productId || index}
+                    className="flex items-start justify-between gap-4"
+                  >
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#340C48]">
+                        {item.name}
+                      </p>
+
+                      <p className="mt-1 text-[11px] text-[#6E6670]">
+                        {item.weight} × {item.quantity}
+                      </p>
+                    </div>
+
+                    <p className="shrink-0 text-[12px] font-semibold text-[#340C48]">
+                      ₹
+                      {(
+                        Number(item.price || 0) *
+                        Number(item.quantity || 0)
+                      ).toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="my-6 border-t border-[#EEE6EE]" />
+
+              <div className="space-y-3 text-[13px]">
+                <div className="flex justify-between gap-4 text-[#6E6670]">
+                  <span>Subtotal</span>
+                  <span>
+                    ₹{subtotal.toLocaleString("en-IN")}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4 text-[#6E6670]">
+                  <span>GST</span>
+                  <span>
+                    ₹{gst.toLocaleString("en-IN")}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4 text-[#6E6670]">
+                  <span>Delivery</span>
+                  <span>Free</span>
+                </div>
+              </div>
+
+              <div className="my-6 border-t border-[#EEE6EE]" />
+
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-[var(--font-display)] text-[20px] text-[#340C48]">
+                  Total
+                </span>
+
+                <span className="text-[20px] font-semibold text-[#340C48]">
+                  ₹{grandTotal.toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePlaceOrder}
+                disabled={
+                  placingOrder || !cartItems.length
+                }
+                className="mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#340C48] px-5 py-4 text-[13px] font-semibold text-white transition hover:bg-[#4B1D63] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {placingOrder ? (
+                  <>
+                    <Loader2
+                      size={17}
+                      className="animate-spin"
+                    />
+                    Placing Order...
+                  </>
+                ) : (
+                  "Place Order"
+                )}
+              </button>
+
+              <p className="mt-4 text-center text-[11px] leading-5 text-[#8A828C]">
+                Your order details will be securely saved
+                to your NMB account.
+              </p>
+            </aside>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* Login Popup */}
+      {showLogin && (
+        <Login
+          onClose={() => {
+            setShowLogin(false);
+            navigate("/cart");
+          }}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
+
+      {/* Order Success Popup */}
+      {showOrderSuccess && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#340C48]/40 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-[430px] rounded-[20px] bg-[#FFF9F2] px-6 py-8 text-center shadow-2xl sm:px-10 sm:py-10">
+            <button
+              type="button"
+              onClick={handleCloseSuccess}
+              className="absolute right-5 top-5 text-[22px] leading-none text-[#340C48] transition hover:text-[#C9A45C]"
+              aria-label="Close order confirmation"
+            >
+              ×
+            </button>
+
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[#C9A45C] bg-[#F5EBD8]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#340C48] text-white">
+                <CheckCircle2
+                  size={28}
+                  strokeWidth={2}
+                />
+              </div>
+            </div>
+
+            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#C9A45C]">
+              Order Confirmed
+            </p>
+
+            <h2 className="mt-3 font-[var(--font-display)] text-[30px] leading-tight text-[#340C48]">
+              Order Placed
+            </h2>
+
+            <p className="mx-auto mt-3 max-w-[300px] text-[13px] leading-6 text-[#6E6670]">
+              Your order has been successfully placed.
+              We’ll carefully prepare your sweets.
+            </p>
+
+            <div className="mt-7 rounded-xl bg-[#F5EBD8] px-5 py-4 text-left">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[11px] text-[#6E6670]">
+                  Order Number
+                </span>
+
+                <span className="text-[12px] font-semibold text-[#340C48]">
+                  #
+                  {placedOrder?._id
+                    ? String(placedOrder._id)
+                        .slice(-8)
+                        .toUpperCase()
+                    : "CONFIRMED"}
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-4">
+                <span className="text-[11px] text-[#6E6670]">
+                  Payment Method
+                </span>
+
+                <span className="text-[12px] font-semibold capitalize text-[#340C48]">
+                  {placedOrder?.paymentMethod === "cod"
+                    ? "Cash on Delivery"
+                    : "Online Payment"}
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#E2D2B5] pt-3">
+                <span className="text-[12px] font-semibold text-[#340C48]">
+                  Total Amount
+                </span>
+
+                <span className="text-[16px] font-semibold text-[#340C48]">
+                  ₹
+                  {Number(
+                    placedOrder?.totalAmount || 0
+                  ).toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleViewOrders}
+                className="flex-1 rounded-xl bg-[#340C48] px-5 py-3.5 text-[12px] font-semibold text-white transition hover:bg-[#4B1D63]"
+              >
+                View My Orders
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCloseSuccess}
+                className="flex-1 rounded-xl border border-[#C9A45C] bg-white px-5 py-3.5 text-[12px] font-semibold text-[#340C48] transition hover:bg-[#F5EBD8]"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
