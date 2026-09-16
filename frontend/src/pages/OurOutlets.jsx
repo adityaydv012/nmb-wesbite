@@ -16,8 +16,8 @@ import Footer from "../components/layout/Footer";
    IMAGES
 ========================================================= */
 
-import outlet1 from "../assets/images/station.jpg";
-import outlet2 from "../assets/images/sadar.jpg";
+import outlet1 from "../assets/images/station.JPG";
+import outlet2 from "../assets/images/sadar.JPG";
 
 /* =========================================================
    LOCATION
