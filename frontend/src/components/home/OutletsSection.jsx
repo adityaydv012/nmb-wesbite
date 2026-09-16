@@ -1,7 +1,7 @@
 import React from "react";
 import { MapPin, ArrowRight } from "lucide-react";
 
-import outletsImage from "../../assets/images/sadar.jpg";
+import outletsImage from "../../assets/images/sadar.JPG";
 
 const outlets = [
   {
