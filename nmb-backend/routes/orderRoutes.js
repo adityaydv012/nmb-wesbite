@@ -4,16 +4,51 @@ import {
   createOrder,
   getMyOrders,
   getOrderById,
+  verifyRazorpayPayment,
 } from "../controllers/orderController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", authMiddleware, createOrder);
+/* ============================================
+   CREATE ORDER
+   ============================================ */
 
-router.get("/", authMiddleware, getMyOrders);
+router.post(
+  "/",
+  authMiddleware,
+  createOrder
+);
 
-router.get("/:orderId", authMiddleware, getOrderById);
+/* ============================================
+   VERIFY RAZORPAY PAYMENT
+   ============================================ */
+
+router.post(
+  "/verify-payment",
+  authMiddleware,
+  verifyRazorpayPayment
+);
+
+/* ============================================
+   GET LOGGED-IN USER ORDERS
+   ============================================ */
+
+router.get(
+  "/",
+  authMiddleware,
+  getMyOrders
+);
+
+/* ============================================
+   GET ONE ORDER
+   ============================================ */
+
+router.get(
+  "/:orderId",
+  authMiddleware,
+  getOrderById
+);
 
 export default router;

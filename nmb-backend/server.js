@@ -17,6 +17,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 import productRoutes from "./routes/productRoutes.js";
 import showcaseSweetRoutes from "./routes/showcaseSweetRoutes.js";
+import settingsRoutes from "./routes/settings.routes.js";
+import settingsPublicRoutes from "./routes/settings.public.routes.js";
 
 import connectDB from "./config/db.js";
 
@@ -174,6 +176,18 @@ app.use(
   adminRoutes
 );
 
+
+app.use("/api/admin/settings", settingsRoutes);
+
+app.use(
+  "/api/settings",
+  settingsPublicRoutes
+);
+
+app.use(
+  "/api/admin/settings",
+  settingsRoutes
+);
 // ============================================
 // DATABASE
 // ============================================

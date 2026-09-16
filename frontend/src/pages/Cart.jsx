@@ -1,8 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ArrowRight,
   ChevronDown,
-  Heart,
   LockKeyhole,
   Minus,
   Plus,
@@ -16,6 +19,14 @@ import Footer from "../components/layout/Footer";
 
 import PRODUCTS from "../data/products";
 import { useCart } from "../context/CartContext";
+import { getPublicGstSettings } from "../services/api";
+
+/* =========================================================
+   DEFAULT GST CONFIGURATION
+========================================================= */
+
+const DEFAULT_GST_ENABLED = true;
+const DEFAULT_GST_RATE = 5;
 
 /* =========================================================
    HELPERS
@@ -40,16 +51,121 @@ export default function Cart() {
   } = useCart();
 
   /* =======================================================
+     GST SETTINGS
+  ======================================================= */
+
+  const [gstSettings, setGstSettings] = useState({
+    gstEnabled: DEFAULT_GST_ENABLED,
+    gstRate: DEFAULT_GST_RATE,
+  });
+
+  const [gstSettingsLoading, setGstSettingsLoading] =
+    useState(true);
+
+  /* =======================================================
+     LOAD GST SETTINGS
+  ======================================================= */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadGstSettings = async () => {
+      try {
+        setGstSettingsLoading(true);
+
+        const response =
+          await getPublicGstSettings();
+
+        if (!isMounted) {
+          return;
+        }
+
+        /*
+         * Backend may return:
+         *
+         * {
+         *   gstEnabled: true,
+         *   gstRate: 5
+         * }
+         *
+         * OR:
+         *
+         * {
+         *   settings: {
+         *     gstEnabled: true,
+         *     gstRate: 5
+         *   }
+         * }
+         */
+
+        const settings =
+          response?.settings ||
+          response?.data ||
+          response ||
+          {};
+
+        const configuredRate = Number(
+          settings.gstRate ??
+            DEFAULT_GST_RATE
+        );
+
+        setGstSettings({
+          gstEnabled:
+            settings.gstEnabled !== false,
+
+          gstRate:
+            Number.isFinite(configuredRate) &&
+            configuredRate >= 0
+              ? configuredRate
+              : DEFAULT_GST_RATE,
+        });
+      } catch (error) {
+        console.error(
+          "Failed to load GST settings:",
+          error
+        );
+
+        /*
+         * Keep the existing default GST configuration
+         * if the settings request fails.
+         */
+        if (isMounted) {
+          setGstSettings({
+            gstEnabled:
+              DEFAULT_GST_ENABLED,
+
+            gstRate:
+              DEFAULT_GST_RATE,
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setGstSettingsLoading(false);
+        }
+      }
+    };
+
+    loadGstSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  /* =======================================================
      RECOMMENDED PRODUCTS
   ======================================================= */
 
   const recommendedProducts = useMemo(() => {
     const cartProductIds = new Set(
-      cartItems.map((item) => item.productId)
+      cartItems.map(
+        (item) => item.productId
+      )
     );
 
     return PRODUCTS.filter(
-      (product) => !cartProductIds.has(product.id)
+      (product) =>
+        !cartProductIds.has(product.id)
     ).slice(0, 4);
   }, [cartItems]);
 
@@ -57,11 +173,89 @@ export default function Cart() {
      GST
   ======================================================= */
 
-  const gst = Math.round(cartTotal * 0.05);
+  const gst = useMemo(() => {
+    /*
+     * GST disabled from Admin Panel
+     */
+    if (!gstSettings.gstEnabled) {
+      return 0;
+    }
 
+    const rate = Number(
+      gstSettings.gstRate || 0
+    );
+
+    /*
+     * Invalid / zero GST rate
+     */
+    if (
+      !Number.isFinite(rate) ||
+      rate <= 0
+    ) {
+      return 0;
+    }
+
+    return Math.round(
+      Number(cartTotal || 0) *
+        (rate / 100)
+    );
+  }, [
+    cartTotal,
+    gstSettings.gstEnabled,
+    gstSettings.gstRate,
+  ]);
+
+  /* =======================================================
+     GST LABEL
+  ======================================================= */
+
+  const gstLabel = useMemo(() => {
+    if (!gstSettings.gstEnabled) {
+      return "GST";
+    }
+
+    const rate = Number(
+      gstSettings.gstRate || 0
+    );
+
+    if (
+      !Number.isFinite(rate) ||
+      rate <= 0
+    ) {
+      return "GST";
+    }
+
+    return `GST (${rate}%)`;
+  }, [
+    gstSettings.gstEnabled,
+    gstSettings.gstRate,
+  ]);
+
+  /* =======================================================
+     DELIVERY
+  ======================================================= */
+
+  /*
+   * Cart page does not have a delivery address yet,
+   * so delivery remains Free here.
+   *
+   * Actual delivery is calculated on Checkout
+   * according to the selected address and weight.
+   */
   const delivery = 0;
 
-  const grandTotal = cartTotal + gst + delivery;
+  /* =======================================================
+     GRAND TOTAL
+  ======================================================= */
+
+  const grandTotal =
+    Number(cartTotal || 0) +
+    gst +
+    delivery;
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <div className="min-h-screen bg-[#FFF9F2]">
@@ -143,13 +337,19 @@ export default function Cart() {
                     key={item.cartId}
                     item={item}
                     onIncrease={() =>
-                      increaseQuantity(item.cartId)
+                      increaseQuantity(
+                        item.cartId
+                      )
                     }
                     onDecrease={() =>
-                      decreaseQuantity(item.cartId)
+                      decreaseQuantity(
+                        item.cartId
+                      )
                     }
                     onRemove={() =>
-                      removeFromCart(item.cartId)
+                      removeFromCart(
+                        item.cartId
+                      )
                     }
                   />
                 ))}
@@ -163,6 +363,10 @@ export default function Cart() {
                 cartCount={cartCount}
                 subtotal={cartTotal}
                 gst={gst}
+                gstLabel={gstLabel}
+                gstSettingsLoading={
+                  gstSettingsLoading
+                }
                 delivery={delivery}
                 total={grandTotal}
               />
@@ -188,12 +392,14 @@ export default function Cart() {
                     lg:grid-cols-4
                   "
                 >
-                  {recommendedProducts.map((product) => (
-                    <RecommendedCard
-                      key={product.id}
-                      product={product}
-                    />
-                  ))}
+                  {recommendedProducts.map(
+                    (product) => (
+                      <RecommendedCard
+                        key={product.id}
+                        product={product}
+                      />
+                    )
+                  )}
                 </div>
               </section>
             )}
@@ -402,8 +608,6 @@ function CartItem({
             {/* ACTIONS */}
 
             <div className="flex items-center gap-5">
-             
-
               <button
                 type="button"
                 onClick={onRemove}
@@ -441,6 +645,8 @@ function OrderSummary({
   cartCount,
   subtotal,
   gst,
+  gstLabel,
+  gstSettingsLoading,
   delivery,
   total,
 }) {
@@ -482,7 +688,9 @@ function OrderSummary({
           "
         >
           Subtotal ({cartCount}{" "}
-          {cartCount === 1 ? "item" : "items"})
+          {cartCount === 1
+            ? "item"
+            : "items"})
         </span>
 
         <span
@@ -532,7 +740,7 @@ function OrderSummary({
             sm:text-[12px]
           "
         >
-          Taxes (GST 5%)
+          {gstLabel}
         </span>
 
         <span
@@ -543,9 +751,28 @@ function OrderSummary({
             sm:text-[12px]
           "
         >
-          {formatPrice(gst)}
+          {gstSettingsLoading
+            ? "..."
+            : formatPrice(gst)}
         </span>
       </div>
+
+      {/* GST STATUS */}
+
+      {!gstSettingsLoading &&
+        gst === 0 && (
+          <p
+            className="
+              mt-2
+              text-right
+              text-[9px]
+              font-medium
+              text-green-700
+            "
+          >
+            GST not applicable
+          </p>
+        )}
 
       {/* DIVIDER */}
 
@@ -672,16 +899,21 @@ function SectionHeading({ children }) {
 function RecommendedCard({ product }) {
   const { addToCart } = useCart();
 
-  const [selectedWeight, setSelectedWeight] = useState(
-    product.weights?.[1] ||
-      product.weights?.[0] ||
-      "500g"
-  );
+  const [selectedWeight, setSelectedWeight] =
+    useState(
+      product.weights?.[1] ||
+        product.weights?.[0] ||
+        "500g"
+    );
 
-  const [added, setAdded] = useState(false);
+  const [added, setAdded] =
+    useState(false);
 
   const handleAddToCart = () => {
-    addToCart(product, selectedWeight);
+    addToCart(
+      product,
+      selectedWeight
+    );
 
     setAdded(true);
 
@@ -766,7 +998,9 @@ function RecommendedCard({ product }) {
           <select
             value={selectedWeight}
             onChange={(event) =>
-              setSelectedWeight(event.target.value)
+              setSelectedWeight(
+                event.target.value
+              )
             }
             className="
               h-7
@@ -785,16 +1019,16 @@ function RecommendedCard({ product }) {
               focus:border-[#4B1D63]
             "
           >
-            {(product.weights || ["500g"]).map(
-              (weight) => (
-                <option
-                  key={weight}
-                  value={weight}
-                >
-                  {weight}
-                </option>
-              )
-            )}
+            {(product.weights || [
+              "500g",
+            ]).map((weight) => (
+              <option
+                key={weight}
+                value={weight}
+              >
+                {weight}
+              </option>
+            ))}
           </select>
 
           <ChevronDown
@@ -812,7 +1046,8 @@ function RecommendedCard({ product }) {
 
         {/* ADD TO CART */}
 
-        {/* <button
+        {/*
+        <button
           type="button"
           onClick={handleAddToCart}
           className={`
@@ -838,8 +1073,11 @@ function RecommendedCard({ product }) {
             }
           `}
         >
-          {added ? "Added To Cart" : "Add To Cart"}
-        </button> */}
+          {added
+            ? "Added To Cart"
+            : "Add To Cart"}
+        </button>
+        */}
       </div>
     </article>
   );
