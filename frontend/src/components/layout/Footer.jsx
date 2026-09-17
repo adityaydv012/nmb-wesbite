@@ -23,9 +23,8 @@ export default function Footer() {
         color: "#C9A45C",
       }}
     >
-      {/* =====================================================
-          BACKGROUND IMAGE
-      ===================================================== */}
+      {/* BACKGROUND IMAGE */}
+
       <div className="pointer-events-none absolute inset-0">
         <img
           src={footerImage}
@@ -42,7 +41,6 @@ export default function Footer() {
           "
         />
 
-        {/* Purple overlay / fade */}
         <div
           className="
             absolute
@@ -55,7 +53,6 @@ export default function Footer() {
           "
         />
 
-        {/* Bottom fade */}
         <div
           className="
             absolute
@@ -69,9 +66,8 @@ export default function Footer() {
         />
       </div>
 
-      {/* =====================================================
-          FOOTER CONTENT
-      ===================================================== */}
+      {/* FOOTER CONTENT */}
+
       <div
         className="
           relative
@@ -86,9 +82,8 @@ export default function Footer() {
           lg:py-20
         "
       >
-        {/* =================================================
-            MAIN FOOTER GRID
-        ================================================= */}
+        {/* MAIN GRID */}
+
         <div
           className="
             grid
@@ -97,11 +92,9 @@ export default function Footer() {
             lg:gap-10
           "
         >
-          {/* =================================================
-              BRAND SECTION
-          ================================================= */}
+          {/* BRAND */}
+
           <div className="max-w-[300px]">
-            {/* Logo */}
             <Link
               to="/"
               className="
@@ -126,7 +119,6 @@ export default function Footer() {
               />
             </Link>
 
-            {/* Tagline */}
             <h3
               className="
                 mt-6
@@ -143,7 +135,6 @@ export default function Footer() {
               Life... a little sweeter!
             </h3>
 
-            {/* Description */}
             <p
               className="
                 mt-4
@@ -155,14 +146,13 @@ export default function Footer() {
                 color: "#FFF9F2",
               }}
             >
-              Traditional flavours. Timeless celebrations. Made with care.
+              Traditional flavours. Timeless celebrations.
+              Made with care.
             </p>
 
-            {/* =================================================
-                SOCIAL / CONTACT BUTTONS
-            ================================================= */}
+            {/* SOCIAL BUTTONS */}
+
             <div className="mt-7 flex items-center gap-2.5">
-              {/* Share */}
               <a
                 href="#"
                 aria-label="Share"
@@ -181,10 +171,12 @@ export default function Footer() {
                   hover:text-[#4B1D63]
                 "
               >
-                <Share2 size={13} strokeWidth={1.5} />
+                <Share2
+                  size={13}
+                  strokeWidth={1.5}
+                />
               </a>
 
-              {/* Email */}
               <a
                 href="mailto:hello@example.com"
                 aria-label="Email"
@@ -203,10 +195,12 @@ export default function Footer() {
                   hover:text-[#4B1D63]
                 "
               >
-                <Mail size={13} strokeWidth={1.5} />
+                <Mail
+                  size={13}
+                  strokeWidth={1.5}
+                />
               </a>
 
-              {/* Contact Us */}
               <Link
                 to="/contact-us"
                 aria-label="Contact Us"
@@ -225,14 +219,16 @@ export default function Footer() {
                   hover:text-[#4B1D63]
                 "
               >
-                <MessageSquare size={13} strokeWidth={1.5} />
+                <MessageSquare
+                  size={13}
+                  strokeWidth={1.5}
+                />
               </Link>
             </div>
           </div>
 
-          {/* =================================================
-              EXPLORE
-          ================================================= */}
+          {/* EXPLORE */}
+
           <FooterColumn
             title="Explore"
             links={[
@@ -251,9 +247,8 @@ export default function Footer() {
             ]}
           />
 
-          {/* =================================================
-              SHOP
-          ================================================= */}
+          {/* SHOP */}
+
           <FooterColumn
             title="Shop"
             links={[
@@ -276,9 +271,8 @@ export default function Footer() {
             ]}
           />
 
-          {/* =================================================
-              VISIT
-          ================================================= */}
+          {/* VISIT */}
+
           <FooterColumn
             title="Visit"
             links={[
@@ -298,9 +292,8 @@ export default function Footer() {
           />
         </div>
 
-        {/* =====================================================
-            BOTTOM DIVIDER
-        ===================================================== */}
+        {/* DIVIDER */}
+
         <div
           className="
             mt-14
@@ -313,9 +306,8 @@ export default function Footer() {
           }}
         />
 
-        {/* =====================================================
-            BOTTOM FOOTER
-        ===================================================== */}
+        {/* BOTTOM */}
+
         <div
           className="
             mt-5
@@ -331,12 +323,11 @@ export default function Footer() {
             color: "#C9A45C",
           }}
         >
-          {/* Copyright */}
           <p>
-            © 2024 Narayan Misthan Bhandar. All rights reserved.
+            © 2024 Narayan Misthan Bhandar.
+            All rights reserved.
           </p>
 
-          {/* Legal Links */}
           <div className="flex items-center gap-6">
             <Link
               to="/privacy-policy"
@@ -371,27 +362,20 @@ export default function Footer() {
 }
 
 /* =========================================================
-   FOOTER COLUMN COMPONENT
+   FOOTER COLUMN
 ========================================================= */
 
 function FooterColumn({ title, links }) {
   return (
     <div>
-      {/* COLUMN HEADING */}
       <div className="flex items-center gap-3">
-        {/* Left Gold Line */}
         <span
-          className="
-            h-px
-            w-5
-            shrink-0
-          "
+          className="h-px w-5 shrink-0"
           style={{
             backgroundColor: "#C9A45C",
           }}
         />
 
-        {/* Heading */}
         <h4
           className="
             whitespace-nowrap
@@ -411,20 +395,14 @@ function FooterColumn({ title, links }) {
           {title}
         </h4>
 
-        {/* Right Gold Line */}
         <span
-          className="
-            h-px
-            w-5
-            shrink-0
-          "
+          className="h-px w-5 shrink-0"
           style={{
             backgroundColor: "#C9A45C",
           }}
         />
       </div>
 
-      {/* COLUMN LINKS */}
       <div className="mt-6 flex flex-col gap-3">
         {links.map((link) => (
           <Link

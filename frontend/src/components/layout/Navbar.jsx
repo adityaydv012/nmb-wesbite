@@ -10,7 +10,10 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import { Link, useLocation } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+} from "react-router-dom";
 
 import logo from "../../assets/logo/logo.png";
 import Ticker from "../common/Ticker";
@@ -314,9 +317,7 @@ function Navbar() {
           bg-[#FFF9F2]
         "
       >
-        {/* =====================================================
-            TICKER
-        ====================================================== */}
+        {/* TICKER */}
 
         <Ticker />
 
@@ -349,9 +350,7 @@ function Navbar() {
                 "clamp(40px, 3vw, 72px)",
             }}
           >
-            {/* =================================================
-                BRAND
-            ================================================== */}
+            {/* BRAND */}
 
             <Link
               to="/"
@@ -362,6 +361,8 @@ function Navbar() {
                 gap-[18px]
               "
             >
+              {/* DESKTOP LOGO — UNCHANGED */}
+
               <img
                 src={logo}
                 alt="Narayan Misthan Bhandar"
@@ -411,9 +412,7 @@ function Navbar() {
               </div>
             </Link>
 
-            {/* =================================================
-                DESKTOP NAV LINKS
-            ================================================== */}
+            {/* DESKTOP LINKS */}
 
             <div
               className="
@@ -516,9 +515,7 @@ function Navbar() {
               </div>
             </div>
 
-            {/* =================================================
-                DESKTOP ACTIONS
-            ================================================== */}
+            {/* DESKTOP ACTIONS */}
 
             <div
               className="
@@ -809,10 +806,6 @@ function Navbar() {
 
       {/* =========================================================
           MOBILE TOP NAVIGATION
-          
-          IMPORTANT:
-          This is OUTSIDE the sticky header so it can visually
-          overlay the hero section.
       ========================================================== */}
 
       <MobileTopNavigation />
@@ -861,10 +854,6 @@ function Navbar() {
             shadow-[0_-8px_30px_rgba(52,12,72,0.12)]
           "
         >
-          {/* =================================================
-              MOBILE NAV ITEMS
-          ================================================== */}
-
           {mobileNavItems.map(
             (item) => {
               const Icon =
@@ -950,8 +939,6 @@ function Navbar() {
                       }
                     </span>
 
-                    {/* Cart Badge */}
-
                     {item.label ===
                       "Cart" &&
                       cartCount >
@@ -985,9 +972,7 @@ function Navbar() {
             }
           )}
 
-          {/* =================================================
-              ACCOUNT
-          ================================================== */}
+          {/* ACCOUNT */}
 
           <div className="relative flex h-full flex-1 items-center justify-center">
             <motion.button
@@ -1047,9 +1032,7 @@ function Navbar() {
               </span>
             </motion.button>
 
-            {/* =================================================
-                MOBILE ACCOUNT MENU
-            ================================================== */}
+            {/* MOBILE ACCOUNT MENU */}
 
             <AnimatePresence>
               {isLoggedIn &&
@@ -1168,9 +1151,7 @@ function Navbar() {
         </motion.nav>
       </div>
 
-      {/* =========================================================
-          LOGIN POPUP
-      ========================================================== */}
+      {/* LOGIN POPUP */}
 
       <AnimatePresence>
         {showLogin && (

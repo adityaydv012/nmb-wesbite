@@ -144,7 +144,6 @@ function MobileTopNavigation() {
     <>
       {/* =====================================================
           MOBILE TOP NAVIGATION
-          SITS BELOW TICKER
       ====================================================== */}
 
       <motion.div
@@ -188,7 +187,7 @@ function MobileTopNavigation() {
             backdrop-blur-[5px]
           "
         >
-          {/* SUBTLE TOP HIGHLIGHT */}
+          {/* TOP HIGHLIGHT */}
 
           <div
             className="
@@ -237,8 +236,6 @@ function MobileTopNavigation() {
               strokeWidth={1.7}
             />
 
-            {/* GOLD DOT */}
-
             <span
               className="
                 absolute
@@ -283,6 +280,7 @@ function MobileTopNavigation() {
                 className="
                   h-[48px]
                   w-[48px]
+                  scale-x-100
                   object-contain
                   drop-shadow-[0_2px_5px_rgba(0,0,0,0.25)]
                 "
@@ -311,9 +309,7 @@ function MobileTopNavigation() {
               min-[1280px]:hidden
             "
           >
-            {/* =================================================
-                BLURRED BACKDROP
-            ================================================== */}
+            {/* BACKDROP */}
 
             <motion.button
               type="button"
@@ -332,9 +328,7 @@ function MobileTopNavigation() {
               "
             />
 
-            {/* =================================================
-                DRAWER
-            ================================================== */}
+            {/* DRAWER */}
 
             <motion.aside
               variants={drawerVariants}
@@ -353,9 +347,7 @@ function MobileTopNavigation() {
                 shadow-[15px_0_50px_rgba(25,7,35,0.28)]
               "
             >
-              {/* =================================================
-                  DECORATIVE PURPLE GLOW
-              ================================================== */}
+              {/* DECORATIVE GLOW */}
 
               <div
                 className="
@@ -464,6 +456,7 @@ function MobileTopNavigation() {
                     className="
                       h-[50px]
                       w-[50px]
+                      scale-x-100
                       object-contain
                       drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]
                     "
@@ -482,13 +475,8 @@ function MobileTopNavigation() {
                       delay: 0.32,
                       duration: 0.35,
                     }}
-                    className="
-                      flex
-                      flex-col
-                    "
-                  >
-                   
-                  </motion.div>
+                    className="flex flex-col"
+                  />
                 </Link>
 
                 {/* CLOSE */}
@@ -529,9 +517,7 @@ function MobileTopNavigation() {
                 </motion.button>
               </motion.div>
 
-              {/* =================================================
-                  MENU CONTENT
-              ================================================== */}
+              {/* MENU CONTENT */}
 
               <motion.nav
                 variants={menuContainerVariants}
@@ -550,10 +536,7 @@ function MobileTopNavigation() {
 
                 <motion.div
                   variants={menuItemVariants}
-                  className="
-                    mb-1
-                    px-1
-                  "
+                  className="mb-1 px-1"
                 >
                   <span
                     className="
@@ -590,8 +573,6 @@ function MobileTopNavigation() {
                           py-[18px]
                         "
                       >
-                        {/* ACTIVE/HOVER BACKGROUND */}
-
                         <span
                           className="
                             pointer-events-none
@@ -607,8 +588,6 @@ function MobileTopNavigation() {
                           "
                         />
 
-                        {/* LEFT CONTENT */}
-
                         <span
                           className="
                             relative
@@ -617,8 +596,6 @@ function MobileTopNavigation() {
                             gap-3
                           "
                         >
-                          {/* NUMBER */}
-
                           <span
                             className="
                               flex
@@ -635,13 +612,8 @@ function MobileTopNavigation() {
                           >
                             {String(
                               index + 1
-                            ).padStart(
-                              2,
-                              "0"
-                            )}
+                            ).padStart(2, "0")}
                           </span>
-
-                          {/* LABEL */}
 
                           <span
                             className="
@@ -657,8 +629,6 @@ function MobileTopNavigation() {
                             {item.label}
                           </span>
                         </span>
-
-                        {/* ARROW */}
 
                         <motion.span
                           initial={{
@@ -696,9 +666,7 @@ function MobileTopNavigation() {
                 )}
               </motion.nav>
 
-              {/* =================================================
-                  BOTTOM BRAND CARD
-              ================================================== */}
+              {/* BOTTOM BRAND CARD */}
 
               <motion.div
                 initial={{
@@ -732,8 +700,6 @@ function MobileTopNavigation() {
                     py-5
                   "
                 >
-                  {/* GOLD ACCENT */}
-
                   <div
                     className="
                       absolute
