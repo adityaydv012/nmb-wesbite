@@ -197,7 +197,7 @@ function MobileTopNavigation() {
           absolute
           left-0
           right-0
-          top-[32px]
+          top-0
           z-[80]
           block
           min-[1280px]:hidden
@@ -221,7 +221,9 @@ function MobileTopNavigation() {
             backdrop-blur-[5px]
           "
         >
-          {/* TOP HIGHLIGHT */}
+          {/* =================================================
+              TOP HIGHLIGHT
+          ================================================== */}
 
           <div
             className="
@@ -332,7 +334,9 @@ function MobileTopNavigation() {
             </motion.div>
           </Link>
 
-          {/* RIGHT SPACER */}
+          {/* =================================================
+              RIGHT SPACER
+          ================================================== */}
 
           <div className="h-9 w-9" />
         </div>
@@ -353,7 +357,9 @@ function MobileTopNavigation() {
               min-[1280px]:hidden
             "
           >
-            {/* BACKDROP */}
+            {/* =================================================
+                BACKDROP
+            ================================================== */}
 
             <motion.button
               type="button"
@@ -372,7 +378,9 @@ function MobileTopNavigation() {
               "
             />
 
-            {/* DRAWER */}
+            {/* =================================================
+                DRAWER
+            ================================================== */}
 
             <motion.aside
               variants={drawerVariants}
@@ -391,7 +399,9 @@ function MobileTopNavigation() {
                 shadow-[15px_0_50px_rgba(25,7,35,0.28)]
               "
             >
-              {/* DECORATIVE GLOW */}
+              {/* =================================================
+                  DECORATIVE GLOW
+              ================================================== */}
 
               <div
                 className="
@@ -470,8 +480,8 @@ function MobileTopNavigation() {
                 {/* =================================================
                     DRAWER LOGO
 
-                    The wrapper handles rotation so that
-                    Framer Motion's own transform remains intact.
+                    Wrapper handles iOS rotation so that
+                    Framer Motion's transform remains intact.
                 ================================================== */}
 
                 <Link
@@ -557,7 +567,9 @@ function MobileTopNavigation() {
                 </motion.button>
               </motion.div>
 
-              {/* MENU CONTENT */}
+              {/* =================================================
+                  MENU CONTENT
+              ================================================== */}
 
               <motion.nav
                 variants={menuContainerVariants}

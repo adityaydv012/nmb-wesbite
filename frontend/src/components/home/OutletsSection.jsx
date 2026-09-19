@@ -3,25 +3,39 @@ import { MapPin, ArrowRight } from "lucide-react";
 
 import outletsImage from "../../assets/images/sadar.JPG";
 
+/* =========================================================
+   OUTLETS
+========================================================= */
+
 const outlets = [
   {
     name: "Station Road",
     city: "Mainpuri, Uttar Pradesh",
+    latitude: "27.226630590007744",
+    longitude: "79.03542054846737",
   },
   {
     name: "Sadar Bazaar",
     city: "Mainpuri, Uttar Pradesh",
+    latitude: "27.229044614855948",
+    longitude: "79.02851123404506",
   },
 ];
+
+/* =========================================================
+   OUTLETS SECTION
+========================================================= */
 
 export default function OutletsSection() {
   return (
     <section className="w-full bg-[#FDEFFE] py-20 sm:py-24 lg:py-28">
       <div className="mx-auto w-full max-w-[1088px] px-4 sm:px-6 lg:px-0">
 
-        {/* ================= HEADER ================= */}
-        <div className="mx-auto max-w-[620px] text-center">
+        {/* =====================================================
+            HEADER
+        ===================================================== */}
 
+        <div className="mx-auto max-w-[620px] text-center">
           <h2
             className="
               font-[var(--font-display)]
@@ -53,115 +67,205 @@ export default function OutletsSection() {
             of traditional Indian mithai, freshly prepared and beautifully
             served.
           </p>
-
         </div>
 
-        {/* ================= OUTLETS CONTENT ================= */}
-        <div className="mt-10 grid items-stretch gap-6 sm:mt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-7">
+        {/* =====================================================
+            OUTLETS CONTENT
+        ===================================================== */}
 
-          {/* ================= IMAGE ================= */}
-          <div className="relative min-h-[360px] overflow-hidden rounded-[6px] bg-white shadow-[0_18px_35px_rgba(67,34,65,0.14)] sm:min-h-[420px] lg:min-h-[450px]">
+        <div
+          className="
+            mt-10
+            grid
+            items-stretch
+            gap-6
+            sm:mt-12
+            lg:grid-cols-[1.05fr_1fr]
+            lg:gap-7
+          "
+        >
 
+          {/* ===================================================
+              IMAGE
+          ==================================================== */}
+
+          <div
+            className="
+              relative
+              min-h-[360px]
+              overflow-hidden
+              rounded-[6px]
+              bg-white
+              shadow-[0_18px_35px_rgba(67,34,65,0.14)]
+              sm:min-h-[420px]
+              lg:min-h-[450px]
+            "
+          >
             <img
               src={outletsImage}
               alt="Narayan Misthan Bhandar outlet"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="
+                absolute
+                inset-0
+                h-full
+                w-full
+                object-cover
+              "
             />
-
           </div>
 
-          {/* ================= OUTLET CARDS ================= */}
+          {/* ===================================================
+              OUTLET CARDS
+          ==================================================== */}
+
           <div className="flex flex-col gap-5">
+            {outlets.map((outlet) => {
 
-            {outlets.map((outlet) => (
-              <div
-                key={outlet.name}
-                className="
-                  flex
-                  min-h-[210px]
-                  flex-1
-                  flex-col
-                  justify-center
-                  rounded-[10px]
-                  bg-white
-                  px-7
-                  py-7
-                  shadow-[0_8px_25px_rgba(67,34,65,0.05)]
-                  sm:px-8
-                "
-              >
+              /* Google Maps Directions URL */
 
-                {/* Location icon */}
-                <div className="flex items-center gap-3">
+              const directionsUrl =
+                `https://www.google.com/maps/dir/?api=1&destination=${outlet.latitude},${outlet.longitude}`;
 
-                  <MapPin
-                    size={18}
-                    strokeWidth={1.7}
-                    className="text-[#C89C4D]"
-                  />
-
-                  <h3
-                    className="
-                      font-[var(--font-display)]
-                      text-[21px]
-                      font-semibold
-                      text-[var(--nmb-purple)]
-                      sm:text-[22px]
-                    "
-                  >
-                    {outlet.name}
-                  </h3>
-
-                </div>
-
-                {/* City */}
-                <p className="mt-1 pl-[31px] text-[11px] text-[#857C86]">
-                  {outlet.city}
-                </p>
-
-                {/* Timings */}
-                <div className="mt-5 pl-[31px]">
-
-                  <p className="text-[9px] leading-[1.5] text-[#817982]">
-                    Opening Hours — Coming
-                  </p>
-
-                  <p className="text-[9px] leading-[1.5] text-[#817982]">
-                    Soon
-                  </p>
-
-                  <p className="mt-1 text-[9px] leading-[1.5] text-[#817982]">
-                    Contact — Coming Soon
-                  </p>
-
-                </div>
-
-                {/* Directions */}
-                <button
-                  type="button"
+              return (
+                <div
+                  key={outlet.name}
                   className="
-                    mt-5
                     flex
-                    w-fit
-                    items-center
-                    gap-2
-                    pl-[31px]
-                    text-[10px]
-                    font-medium
-                    uppercase
-                    tracking-[0.04em]
-                    text-[var(--nmb-purple)]
-                    transition-opacity
-                    hover:opacity-70
+                    min-h-[210px]
+                    flex-1
+                    flex-col
+                    justify-center
+                    rounded-[10px]
+                    bg-white
+                    px-7
+                    py-7
+                    shadow-[0_8px_25px_rgba(67,34,65,0.05)]
+                    sm:px-8
                   "
                 >
-                  Get Directions
-                  <ArrowRight size={13} strokeWidth={1.7} />
-                </button>
 
-              </div>
-            ))}
+                  {/* =================================================
+                      LOCATION
+                  ================================================== */}
 
+                  <div className="flex items-center gap-3">
+                    <MapPin
+                      size={18}
+                      strokeWidth={1.7}
+                      className="text-[#C89C4D]"
+                    />
+
+                    <h3
+                      className="
+                        font-[var(--font-display)]
+                        text-[21px]
+                        font-semibold
+                        text-[var(--nmb-purple)]
+                        sm:text-[22px]
+                      "
+                    >
+                      {outlet.name}
+                    </h3>
+                  </div>
+
+                  {/* =================================================
+                      CITY
+                  ================================================== */}
+
+                  <p
+                    className="
+                      mt-1
+                      pl-[31px]
+                      text-[11px]
+                      text-[#857C86]
+                    "
+                  >
+                    {outlet.city}
+                  </p>
+
+                  {/* =================================================
+                      TIMINGS
+                  ================================================== */}
+
+                  <div className="mt-5 pl-[31px]">
+                    <p
+                      className="
+                        text-[9px]
+                        leading-[1.5]
+                        text-[#817982]
+                      "
+                    >
+                      Opening Hours — Coming
+                    </p>
+
+                    <p
+                      className="
+                        text-[9px]
+                        leading-[1.5]
+                        text-[#817982]
+                      "
+                    >
+                      Soon
+                    </p>
+
+                    <p
+                      className="
+                        mt-1
+                        text-[9px]
+                        leading-[1.5]
+                        text-[#817982]
+                      "
+                    >
+                      Contact — Coming Soon
+                    </p>
+                  </div>
+
+                  {/* =================================================
+                      DIRECTIONS
+                  ================================================== */}
+
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Get directions to ${outlet.name}`}
+                    className="
+                      group
+                      mt-5
+                      flex
+                      w-fit
+                      items-center
+                      gap-2
+                      pl-[31px]
+                      text-[10px]
+                      font-medium
+                      uppercase
+                      tracking-[0.04em]
+                      text-[var(--nmb-purple)]
+                      transition-all
+                      duration-300
+                      hover:gap-3
+                      hover:text-[#C89C4D]
+                    "
+                  >
+                    <span>
+                      Get Directions
+                    </span>
+
+                    <ArrowRight
+                      size={13}
+                      strokeWidth={1.7}
+                      className="
+                        transition-transform
+                        duration-300
+                        group-hover:translate-x-1
+                      "
+                    />
+                  </a>
+
+                </div>
+              );
+            })}
           </div>
 
         </div>

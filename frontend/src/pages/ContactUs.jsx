@@ -1,740 +1,1278 @@
-import React from "react";
+import React, { useState } from "react";
 import {
-  Phone,
-  MessageSquare,
+  AlertCircle,
+  CheckCircle2,
   Mail,
-  Store,
-  Clock3,
   MapPin,
-  ArrowRight,
-  Heart,
+  Navigation,
+  Phone,
+  Send,
 } from "lucide-react";
 
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
-/* =========================================================
-   IMAGES
-========================================================= */
+const ContactUs = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    contactNumber: "",
+    email: "",
+    feedbackMessage: "",
+  });
 
-import heritageImage from "../assets/images/contact-heritage.png";
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
-/* =========================================================
-   CONTACT OPTIONS
-========================================================= */
+  /* =========================================================
+     HANDLE INPUT
+  ========================================================= */
 
-const CONTACT_OPTIONS = [
-  {
-    icon: Phone,
-    title: "Call Us",
-  },
-  {
-    icon: MessageSquare,
-    title: "WhatsApp",
-  },
-  {
-    icon: Mail,
-    title: "Email Us",
-  },
-  {
-    icon: Store,
-    title: "Visit Us",
-  },
-];
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
 
-/* =========================================================
-   OUTLETS
-========================================================= */
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
-const OUTLETS = [
-  {
-    name: "Station Road Branch",
-    address:
-      "123 Heritage Lane, Near Central Station, Cityville, State, 123456",
-    hours: "8:00 AM - 10:00 PM (Daily)",
-    map: "https://www.google.com/maps?q=Station+Road+India&output=embed",
-  },
-  {
-    name: "Sadar Bazaar Branch",
-    address:
-      "45 Market Square, Main Sadar Bazaar, Cityville, State, 123457",
-    hours: "9:00 AM - 9:00 PM (Closed Mondays)",
-    map: "https://www.google.com/maps?q=Sadar+Bazaar+India&output=embed",
-  },
-];
+    if (message) {
+      setMessage("");
+      setMessageType("");
+    }
+  };
 
-/* =========================================================
-   CONTACT US PAGE
-========================================================= */
+  /* =========================================================
+     FORM SUBMIT - WEB3FORMS
+  ========================================================= */
 
-export default function ContactUs() {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.name.trim() ||
+      !formData.contactNumber.trim() ||
+      !formData.email.trim() ||
+      !formData.feedbackMessage.trim()
+    ) {
+      setMessage("Please fill in all fields.");
+      setMessageType("error");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage("");
+    setMessageType("");
+
+    try {
+      const payload = {
+        access_key: "7d9cda88-4c27-4556-a5c8-1e4cb7f694b4",
+
+        subject:
+          "New Contact Enquiry - Narayan Misthan Bhandar",
+
+        from_name:
+          "Narayan Misthan Bhandar Website",
+
+        name: formData.name,
+
+        contactNumber:
+          formData.contactNumber,
+
+        email:
+          formData.email,
+
+        message:
+          formData.feedbackMessage,
+
+        replyto:
+          formData.email,
+
+        botcheck: "",
+
+        website:
+          "Narayan Misthan Bhandar",
+      };
+
+      const response = await fetch(
+        "https://api.web3forms.com/submit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message ||
+            "Unable to submit the form."
+        );
+      }
+
+      setMessage(
+        "Thank you! Your message has been sent successfully."
+      );
+
+      setMessageType("success");
+
+      setFormData({
+        name: "",
+        contactNumber: "",
+        email: "",
+        feedbackMessage: "",
+      });
+    } catch (error) {
+      console.error(
+        "Web3Forms Error:",
+        error
+      );
+
+      setMessage(
+        "Something went wrong. Please try again."
+      );
+
+      setMessageType("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  /* =========================================================
+     MAP DATA
+  ========================================================= */
+
+  const outlets = [
+    {
+      number: "01",
+      name: "Sadar Bazaar",
+      address: (
+        <>
+          Narayan Misthan Bhandar
+          <br />
+          Sadar Bazaar
+        </>
+      ),
+      latitude: "27.229044614855948",
+      longitude: "79.02851123404506",
+    },
+    {
+      number: "02",
+      name: "Station Road",
+      address: (
+        <>
+          Narayan Misthan Bhandar
+          <br />
+          Station Road, Devpura
+        </>
+      ),
+      latitude: "27.226630590007744",
+      longitude: "79.03542054846737",
+    },
+  ];
+
   return (
-    <div className="min-h-screen overflow-hidden bg-[#FAF7F1]">
+    <>
       {/* =====================================================
           NAVBAR
-      ===================================================== */}
+      ====================================================== */}
 
       <Navbar />
 
       {/* =====================================================
-          MAIN
-      ===================================================== */}
+          MAIN PAGE
+      ====================================================== */}
 
-      <main>
-        {/* =====================================================
-            HERO / CONTACT INTRO
-        ===================================================== */}
+      <main className="w-full bg-[#FFF9F2]">
 
-        <section className="relative overflow-hidden px-5 pb-20 pt-20 sm:px-8 md:pb-24 md:pt-24 lg:px-12 lg:pt-28">
-          {/* Background Soft Glow */}
+        {/* ===================================================
+            CONTACT HERO
+        ==================================================== */}
 
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute left-1/2 top-0 h-[450px] w-[800px] -translate-x-1/2 rounded-full bg-[#EDE4D5]/50 blur-[100px]" />
-          </div>
+        <section
+          className="
+            relative
+            overflow-hidden
+            bg-[#FFF9F2]
+            px-5
+            pb-16
+            pt-16
+            sm:px-8
+            sm:pb-20
+            sm:pt-20
+            lg:px-12
+            lg:pb-24
+            lg:pt-24
+          "
+        >
+          {/* Decorative Glow */}
 
-          <div className="relative z-10 mx-auto max-w-[1200px]">
-            {/* Heading */}
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -left-[160px]
+              -top-[160px]
+              h-[380px]
+              w-[380px]
+              rounded-full
+              bg-[#EDE0F1]
+              opacity-60
+              blur-[70px]
+            "
+          />
 
-            <div className="text-center">
-              <h1
-                className="
-                  font-['Playfair_Display']
-                  text-[40px]
-                  font-semibold
-                  leading-[1.1]
-                  tracking-[-0.02em]
-                  text-[#3B2444]
-                  sm:text-[52px]
-                  md:text-[62px]
-                "
-              >
-                Let's Make Life a Little Sweeter
-              </h1>
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -bottom-[180px]
+              -right-[160px]
+              h-[420px]
+              w-[420px]
+              rounded-full
+              bg-[#F3E5C7]
+              opacity-50
+              blur-[80px]
+            "
+          />
 
-              <p
-                className="
-                  mx-auto
-                  mt-4
-                  max-w-[650px]
-                  text-[14px]
-                  leading-relaxed
-                  text-[#746C75]
-                  sm:text-[15px]
-                "
-              >
-                Have a question, want to place a special order, or simply want
-                to say hello?
-              </p>
-
-              {/* Decorative Divider */}
-
-              <div className="mt-5 flex items-center justify-center gap-3">
-                <span className="h-px w-12 bg-[#C5A15B]/70" />
-
-                <Heart
-                  size={10}
-                  strokeWidth={1.8}
-                  className="fill-[#C5A15B] text-[#C5A15B]"
-                />
-
-                <span className="h-px w-12 bg-[#C5A15B]/70" />
-              </div>
-            </div>
-
-            {/* =====================================================
-                CONTACT GRID
-            ===================================================== */}
+          <div
+            className="
+              relative
+              mx-auto
+              max-w-[1250px]
+            "
+          >
+            {/* TOP LABEL */}
 
             <div
               className="
-                mx-auto
-                mt-16
-                grid
-                max-w-[1100px]
-                gap-5
-                lg:grid-cols-[1.15fr_0.85fr]
+                flex
+                items-center
+                gap-3
               "
             >
-              {/* =================================================
-                  CONTACT FORM
-              ================================================= */}
-
-              <div
+              <span
                 className="
-                  rounded-[12px]
-                  border
-                  border-[#E1D8E2]
-                  bg-[#FCFAF7]
-                  p-6
-                  shadow-[0_12px_40px_rgba(61,34,71,0.05)]
-                  sm:p-8
-                  md:p-10
+                  h-px
+                  w-8
+                  bg-[#C9A45C]
+                "
+              />
+
+              <span
+                className="
+                  text-[10px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.28em]
+                  text-[#C9A45C]
                 "
               >
-                <h2
+                Get In Touch
+              </span>
+            </div>
+
+            {/* HEADING */}
+
+            <h1
+              className="
+                mt-5
+                max-w-[850px]
+                font-[var(--font-display)]
+                text-[44px]
+                font-semibold
+                leading-[1.05]
+                tracking-[-0.02em]
+                text-[#340C48]
+                sm:text-[58px]
+                md:text-[68px]
+                lg:text-[78px]
+              "
+            >
+              We'd love to
+              <br />
+              hear from you.
+            </h1>
+
+            {/* DESCRIPTION */}
+
+            <p
+              className="
+                mt-6
+                max-w-[620px]
+                text-[13px]
+                leading-[1.8]
+                text-[#6F6870]
+                sm:text-[14px]
+              "
+            >
+              Have a question, feedback, or simply want
+              to say hello? Send us a message and our
+              team will get back to you shortly.
+            </p>
+          </div>
+        </section>
+
+        {/* ===================================================
+            CONTACT FORM + INFORMATION
+        ==================================================== */}
+
+        <section
+          className="
+            px-5
+            pb-20
+            sm:px-8
+            lg:px-12
+            lg:pb-24
+          "
+        >
+          <div
+            className="
+              mx-auto
+              grid
+              max-w-[1250px]
+              grid-cols-1
+              gap-8
+              lg:grid-cols-[1.05fr_0.95fr]
+              lg:gap-12
+            "
+          >
+
+            {/* =================================================
+                CONTACT FORM
+            ================================================== */}
+
+            <div
+              className="
+                rounded-[18px]
+                border
+                border-[#340C48]/10
+                bg-white
+                p-6
+                shadow-[0_20px_60px_rgba(52,12,72,0.07)]
+                sm:p-8
+                lg:p-10
+              "
+            >
+              {/* FORM HEADER */}
+
+              <div>
+                <span
                   className="
-                    font-['Playfair_Display']
-                    text-[28px]
+                    text-[9px]
                     font-semibold
-                    text-[#3B2444]
-                    sm:text-[32px]
+                    uppercase
+                    tracking-[0.25em]
+                    text-[#C9A45C]
                   "
                 >
-                  Send a Message
+                  Send A Message
+                </span>
+
+                <h2
+                  className="
+                    mt-3
+                    font-[var(--font-display)]
+                    text-[32px]
+                    font-semibold
+                    leading-tight
+                    text-[#340C48]
+                    sm:text-[38px]
+                  "
+                >
+                  Let's connect.
                 </h2>
 
-                <form className="mt-7 space-y-5">
-                  {/* Name + Phone */}
+                <p
+                  className="
+                    mt-3
+                    max-w-[480px]
+                    text-[12px]
+                    leading-[1.7]
+                    text-[#777078]
+                  "
+                >
+                  Fill out the form below and we'll
+                  get back to you as soon as possible.
+                </p>
+              </div>
 
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="
-                          mb-2
-                          block
-                          text-[9px]
-                          font-semibold
-                          uppercase
-                          tracking-[0.14em]
-                          text-[#746C75]
-                        "
-                      >
-                        Name
-                      </label>
+              {/* STATUS MESSAGE */}
 
-                      <input
-                        id="name"
-                        type="text"
-                        placeholder="Your full name"
-                        className="
-                          w-full
-                          rounded-[5px]
-                          border
-                          border-[#D9CBE0]
-                          bg-[#F8F5F7]
-                          px-4
-                          py-3
-                          text-[12px]
-                          text-[#4B4250]
-                          outline-none
-                          transition-all
-                          placeholder:text-[#B8AFB9]
-                          focus:border-[#7A4D89]
-                          focus:ring-2
-                          focus:ring-[#7A4D89]/10
-                        "
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="phone"
-                        className="
-                          mb-2
-                          block
-                          text-[9px]
-                          font-semibold
-                          uppercase
-                          tracking-[0.14em]
-                          text-[#746C75]
-                        "
-                      >
-                        Phone Number
-                      </label>
-
-                      <input
-                        id="phone"
-                        type="tel"
-                        placeholder="+91 00000 00000"
-                        className="
-                          w-full
-                          rounded-[5px]
-                          border
-                          border-[#D9CBE0]
-                          bg-[#F8F5F7]
-                          px-4
-                          py-3
-                          text-[12px]
-                          text-[#4B4250]
-                          outline-none
-                          transition-all
-                          placeholder:text-[#B8AFB9]
-                          focus:border-[#7A4D89]
-                          focus:ring-2
-                          focus:ring-[#7A4D89]/10
-                        "
-                      />
-                    </div>
-                  </div>
-
-                  {/* Email */}
-
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="
-                        mb-2
-                        block
-                        text-[9px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.14em]
-                        text-[#746C75]
-                      "
-                    >
-                      Email Address
-                    </label>
-
-                    <input
-                      id="email"
-                      type="email"
-                      placeholder="hello@example.com"
-                      className="
-                        w-full
-                        rounded-[5px]
-                        border
-                        border-[#D9CBE0]
-                        bg-[#F8F5F7]
-                        px-4
-                        py-3
-                        text-[12px]
-                        text-[#4B4250]
-                        outline-none
-                        transition-all
-                        placeholder:text-[#B8AFB9]
-                        focus:border-[#7A4D89]
-                        focus:ring-2
-                        focus:ring-[#7A4D89]/10
-                      "
+              {message && (
+                <div
+                  className={`
+                    mt-6
+                    flex
+                    items-start
+                    gap-3
+                    rounded-[10px]
+                    border
+                    px-4
+                    py-3
+                    text-[12px]
+                    leading-[1.5]
+                    ${
+                      messageType === "success"
+                        ? "border-green-200 bg-green-50 text-green-700"
+                        : "border-red-200 bg-red-50 text-red-700"
+                    }
+                  `}
+                >
+                  {messageType === "success" ? (
+                    <CheckCircle2
+                      size={18}
+                      className="mt-[1px] shrink-0"
                     />
-                  </div>
-
-                  {/* Message */}
-
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="
-                        mb-2
-                        block
-                        text-[9px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.14em]
-                        text-[#746C75]
-                      "
-                    >
-                      Your Message
-                    </label>
-
-                    <textarea
-                      id="message"
-                      rows={5}
-                      placeholder="How can we help you today?"
-                      className="
-                        w-full
-                        resize-none
-                        rounded-[5px]
-                        border
-                        border-[#D9CBE0]
-                        bg-[#F8F5F7]
-                        px-4
-                        py-3
-                        text-[12px]
-                        text-[#4B4250]
-                        outline-none
-                        transition-all
-                        placeholder:text-[#B8AFB9]
-                        focus:border-[#7A4D89]
-                        focus:ring-2
-                        focus:ring-[#7A4D89]/10
-                      "
+                  ) : (
+                    <AlertCircle
+                      size={18}
+                      className="mt-[1px] shrink-0"
                     />
-                  </div>
+                  )}
 
-                  {/* Submit */}
+                  <span>{message}</span>
+                </div>
+              )}
 
-                  <button
-                    type="submit"
+              {/* FORM */}
+
+              <form
+                onSubmit={handleSubmit}
+                className="
+                  mt-8
+                  space-y-5
+                "
+              >
+
+                {/* NAME */}
+
+                <div>
+                  <label
+                    htmlFor="name"
                     className="
-                      group
-                      flex
-                      w-full
-                      items-center
-                      justify-center
-                      gap-3
-                      rounded-[3px]
-                      bg-[#4B1D63]
-                      px-6
-                      py-4
+                      mb-2
+                      block
                       text-[10px]
                       font-semibold
                       uppercase
-                      tracking-[0.18em]
-                      !text-white
-                      shadow-[0_10px_25px_rgba(75,29,99,0.15)]
-                      transition-all
-                      duration-300
-                      hover:bg-[#391448]
-                      hover:shadow-[0_15px_30px_rgba(75,29,99,0.25)]
+                      tracking-[0.16em]
+                      text-[#4C444E]
                     "
                   >
-                    <span className="!text-white">Send Message</span>
+                    Name
+                  </label>
 
-                    <ArrowRight
-                      size={15}
-                      className="
-                        !text-white
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-1
-                      "
-                    />
-                  </button>
-                </form>
-              </div>
-
-              {/* =================================================
-                  CONTACT RIGHT SIDE
-              ================================================= */}
-
-              <div className="flex flex-col gap-5">
-                {/* Contact Options */}
-
-                <div className="grid grid-cols-2 gap-5">
-                  {CONTACT_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-
-                    return (
-                      <button
-                        key={option.title}
-                        type="button"
-                        className="
-                          group
-                          flex
-                          min-h-[135px]
-                          flex-col
-                          items-center
-                          justify-center
-                          rounded-[12px]
-                          border
-                          border-[#E1D8E2]
-                          bg-[#F8F5F7]
-                          px-4
-                          transition-all
-                          duration-300
-                          hover:-translate-y-1
-                          hover:border-[#C5A15B]/60
-                          hover:bg-white
-                          hover:shadow-[0_15px_30px_rgba(61,34,71,0.08)]
-                        "
-                      >
-                        <Icon
-                          size={23}
-                          strokeWidth={1.7}
-                          className="
-                            text-[#4B1D63]
-                            transition-transform
-                            duration-300
-                            group-hover:scale-110
-                          "
-                        />
-
-                        <span
-                          className="
-                            mt-4
-                            text-[11px]
-                            font-semibold
-                            tracking-[0.04em]
-                            text-[#4B3A50]
-                          "
-                        >
-                          {option.title}
-                        </span>
-                      </button>
-                    );
-                  })}
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Your full name"
+                    required
+                    className="
+                      h-[52px]
+                      w-full
+                      rounded-[8px]
+                      border
+                      border-[#340C48]/10
+                      bg-[#FFF9F2]
+                      px-4
+                      text-[13px]
+                      text-[#340C48]
+                      outline-none
+                      transition-all
+                      placeholder:text-[#9B949C]
+                      focus:border-[#C9A45C]
+                      focus:ring-2
+                      focus:ring-[#C9A45C]/10
+                    "
+                  />
                 </div>
 
-                {/* Heritage Image */}
+                {/* CONTACT NUMBER */}
+
+                <div>
+                  <label
+                    htmlFor="contactNumber"
+                    className="
+                      mb-2
+                      block
+                      text-[10px]
+                      font-semibold
+                      uppercase
+                      tracking-[0.16em]
+                      text-[#4C444E]
+                    "
+                  >
+                    Contact Number
+                  </label>
+
+                  <input
+                    id="contactNumber"
+                    name="contactNumber"
+                    type="tel"
+                    value={
+                      formData.contactNumber
+                    }
+                    onChange={handleInputChange}
+                    placeholder="+91 98765 43210"
+                    required
+                    className="
+                      h-[52px]
+                      w-full
+                      rounded-[8px]
+                      border
+                      border-[#340C48]/10
+                      bg-[#FFF9F2]
+                      px-4
+                      text-[13px]
+                      text-[#340C48]
+                      outline-none
+                      transition-all
+                      placeholder:text-[#9B949C]
+                      focus:border-[#C9A45C]
+                      focus:ring-2
+                      focus:ring-[#C9A45C]/10
+                    "
+                  />
+                </div>
+
+                {/* EMAIL */}
+
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="
+                      mb-2
+                      block
+                      text-[10px]
+                      font-semibold
+                      uppercase
+                      tracking-[0.16em]
+                      text-[#4C444E]
+                    "
+                  >
+                    Email Address
+                  </label>
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="you@example.com"
+                    required
+                    className="
+                      h-[52px]
+                      w-full
+                      rounded-[8px]
+                      border
+                      border-[#340C48]/10
+                      bg-[#FFF9F2]
+                      px-4
+                      text-[13px]
+                      text-[#340C48]
+                      outline-none
+                      transition-all
+                      placeholder:text-[#9B949C]
+                      focus:border-[#C9A45C]
+                      focus:ring-2
+                      focus:ring-[#C9A45C]/10
+                    "
+                  />
+                </div>
+
+                {/* MESSAGE */}
+
+                <div>
+                  <label
+                    htmlFor="feedbackMessage"
+                    className="
+                      mb-2
+                      block
+                      text-[10px]
+                      font-semibold
+                      uppercase
+                      tracking-[0.16em]
+                      text-[#4C444E]
+                    "
+                  >
+                    Message
+                  </label>
+
+                  <textarea
+                    id="feedbackMessage"
+                    name="feedbackMessage"
+                    value={
+                      formData.feedbackMessage
+                    }
+                    onChange={handleInputChange}
+                    placeholder="Write your message here..."
+                    required
+                    rows={6}
+                    className="
+                      w-full
+                      resize-none
+                      rounded-[8px]
+                      border
+                      border-[#340C48]/10
+                      bg-[#FFF9F2]
+                      px-4
+                      py-4
+                      text-[13px]
+                      leading-[1.6]
+                      text-[#340C48]
+                      outline-none
+                      transition-all
+                      placeholder:text-[#9B949C]
+                      focus:border-[#C9A45C]
+                      focus:ring-2
+                      focus:ring-[#C9A45C]/10
+                    "
+                  />
+                </div>
+
+                {/* SUBMIT */}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="
+                    group
+                    flex
+                    h-[54px]
+                    w-full
+                    items-center
+                    justify-center
+                    gap-3
+                    rounded-[8px]
+                    bg-[#340C48]
+                    px-6
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.2em]
+                    text-white
+                    transition-all
+                    duration-300
+                    hover:bg-[#4B1D63]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
+                  "
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span
+                        className="
+                          h-4
+                          w-4
+                          animate-spin
+                          rounded-full
+                          border-2
+                          border-white/30
+                          border-t-white
+                        "
+                      />
+
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      Send Message
+
+                      <Send
+                        size={15}
+                        strokeWidth={1.7}
+                        className="
+                          transition-transform
+                          duration-300
+                          group-hover:translate-x-1
+                        "
+                      />
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+
+            {/* =================================================
+                CONTACT INFORMATION
+            ================================================== */}
+
+            <div
+              className="
+                flex
+                flex-col
+              "
+            >
+              {/* CONTACT INFO CARD */}
+
+              <div
+                className="
+                  rounded-[18px]
+                  bg-[#340C48]
+                  p-7
+                  text-white
+                  shadow-[0_20px_60px_rgba(52,12,72,0.16)]
+                  sm:p-9
+                "
+              >
+                <span
+                  className="
+                    text-[9px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.25em]
+                    text-[#C9A45C]
+                  "
+                >
+                  Contact Information
+                </span>
+
+                <h2
+                  className="
+                    mt-4
+                    max-w-[420px]
+                    font-[var(--font-display)]
+                    text-[30px]
+                    font-semibold
+                    leading-[1.15]
+                    sm:text-[36px]
+                  "
+                >
+                  We're here to
+                  <br />
+                  help.
+                </h2>
 
                 <div
                   className="
-                    relative
-                    min-h-[220px]
-                    flex-1
-                    overflow-hidden
-                    rounded-[12px]
+                    mt-8
+                    space-y-5
                   "
                 >
-                  <img
-                    src={heritageImage}
-                    alt="Traditional Indian sweets"
-                    className="
-                      absolute
-                      inset-0
-                      h-full
-                      w-full
-                      object-cover
-                    "
-                  />
+                  {/* EMAIL */}
 
-                  {/* Overlay */}
-
-                  <div
+                  <a
+                    href="mailto:sweetsnmb@gmail.com"
                     className="
-                      absolute
-                      inset-0
-                      bg-gradient-to-t
-                      from-[#28121F]/75
-                      via-[#28121F]/10
-                      to-transparent
-                    "
-                  />
-
-                  <div
-                    className="
-                      absolute
-                      bottom-0
-                      left-0
-                      right-0
-                      p-7
+                      group
+                      flex
+                      items-center
+                      gap-4
                     "
                   >
-                    <p
+                    <span
                       className="
-                        font-['Playfair_Display']
-                        text-[30px]
-                        font-semibold
-                        text-white
-                        sm:text-[34px]
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-[#C9A45C]/40
+                        bg-white/5
+                        text-[#C9A45C]
                       "
                     >
-                      Crafted with Heritage
-                    </p>
+                      <Mail
+                        size={17}
+                        strokeWidth={1.6}
+                      />
+                    </span>
+
+                    <span>
+                      <span
+                        className="
+                          block
+                          text-[9px]
+                          font-semibold
+                          uppercase
+                          tracking-[0.18em]
+                          text-[#C9A45C]
+                        "
+                      >
+                        Email
+                      </span>
+
+                      <span
+                        className="
+                          mt-1
+                          block
+                          text-[12px]
+                          text-white/85
+                          transition-colors
+                          group-hover:text-white
+                        "
+                      >
+                        sweetsnmb@gmail.com
+                      </span>
+                    </span>
+                  </a>
+
+                  {/* PHONE */}
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-4
+                    "
+                  >
+                    <span
+                      className="
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-[#C9A45C]/40
+                        bg-white/5
+                        text-[#C9A45C]
+                      "
+                    >
+                      <Phone
+                        size={17}
+                        strokeWidth={1.6}
+                      />
+                    </span>
+
+                    <span>
+                      <span
+                        className="
+                          block
+                          text-[9px]
+                          font-semibold
+                          uppercase
+                          tracking-[0.18em]
+                          text-[#C9A45C]
+                        "
+                      >
+                        Phone
+                      </span>
+
+                      <span
+                        className="
+                          mt-1
+                          block
+                          text-[12px]
+                          text-white/85
+                        "
+                      >
+                        Contact our store
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* LOCATION */}
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-4
+                    "
+                  >
+                    <span
+                      className="
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-[#C9A45C]/40
+                        bg-white/5
+                        text-[#C9A45C]
+                      "
+                    >
+                      <MapPin
+                        size={17}
+                        strokeWidth={1.6}
+                      />
+                    </span>
+
+                    <span>
+                      <span
+                        className="
+                          block
+                          text-[9px]
+                          font-semibold
+                          uppercase
+                          tracking-[0.18em]
+                          text-[#C9A45C]
+                        "
+                      >
+                        Locations
+                      </span>
+
+                      <span
+                        className="
+                          mt-1
+                          block
+                          text-[12px]
+                          leading-[1.6]
+                          text-white/85
+                        "
+                      >
+                        Sadar Bazaar & Station Road,
+                        <br />
+                        Devpura
+                      </span>
+                    </span>
                   </div>
                 </div>
+
+                {/* GOLD DIVIDER */}
+
+                <div
+                  className="
+                    mt-8
+                    h-px
+                    w-full
+                    bg-[#C9A45C]/25
+                  "
+                />
+
+                <p
+                  className="
+                    mt-6
+                    text-[11px]
+                    leading-[1.7]
+                    text-white/60
+                  "
+                >
+                  Visit us at either of our outlets and
+                  experience the authentic taste and
+                  tradition of Narayan Misthan Bhandar.
+                </p>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* =====================================================
-                DIVIDER
-            ===================================================== */}
+        {/* ===================================================
+            OUR OUTLETS
+        ==================================================== */}
 
-            <div className="mx-auto mt-24 h-px max-w-[1100px] bg-[#DED4C7]" />
+        <section
+          className="
+            bg-[#F7EEE7]
+            px-5
+            py-20
+            sm:px-8
+            lg:px-12
+            lg:py-24
+          "
+        >
+          <div
+            className="
+              mx-auto
+              max-w-[1250px]
+            "
+          >
+            {/* SECTION HEADER */}
 
-            {/* =====================================================
-                OUTLETS
-            ===================================================== */}
+            <div
+              className="
+                flex
+                flex-col
+                justify-between
+                gap-6
+                md:flex-row
+                md:items-end
+              "
+            >
+              <div>
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      h-px
+                      w-8
+                      bg-[#C9A45C]
+                    "
+                  />
 
-            <section className="pt-16 md:pt-20">
-              {/* Heading */}
+                  <span
+                    className="
+                      text-[9px]
+                      font-semibold
+                      uppercase
+                      tracking-[0.25em]
+                      text-[#C9A45C]
+                    "
+                  >
+                    Visit Us
+                  </span>
+                </div>
 
-              <div className="text-center">
                 <h2
                   className="
-                    font-['Playfair_Display']
-                    text-[36px]
+                    mt-4
+                    font-[var(--font-display)]
+                    text-[40px]
                     font-semibold
-                    text-[#3B2444]
-                    sm:text-[44px]
+                    leading-none
+                    text-[#340C48]
+                    sm:text-[50px]
                   "
                 >
                   Our Outlets
                 </h2>
-
-                <p className="mt-2 text-[13px] text-[#746C75]">
-                  Find a Narayan Misthan Bhandar near you.
-                </p>
               </div>
 
-              {/* Outlet Cards */}
-
-              <div
+              <p
                 className="
-                  mx-auto
-                  mt-10
-                  grid
-                  max-w-[1100px]
-                  gap-6
-                  md:grid-cols-2
+                  max-w-[420px]
+                  text-[12px]
+                  leading-[1.7]
+                  text-[#756D74]
                 "
               >
-                {OUTLETS.map((outlet) => (
-                  <article
-                    key={outlet.name}
+                Find the Narayan Misthan Bhandar outlet
+                nearest to you and come enjoy our
+                traditional sweets and treats.
+              </p>
+            </div>
+
+            {/* OUTLET GRID */}
+
+            <div
+              className="
+                mt-12
+                grid
+                grid-cols-1
+                gap-7
+                lg:grid-cols-2
+              "
+            >
+              {outlets.map((outlet) => {
+                const mapUrl = `https://www.google.com/maps?q=${outlet.latitude},${outlet.longitude}&output=embed`;
+
+                const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${outlet.latitude},${outlet.longitude}`;
+
+                return (
+                  <div
+                    key={outlet.number}
                     className="
                       overflow-hidden
-                      rounded-[12px]
+                      rounded-[16px]
                       border
-                      border-[#E1D8E2]
-                      bg-[#FCFAF7]
-                      transition-all
-                      duration-300
-                      hover:-translate-y-1
-                      hover:shadow-[0_18px_45px_rgba(61,34,71,0.08)]
+                      border-[#340C48]/10
+                      bg-white
+                      shadow-[0_18px_50px_rgba(52,12,72,0.07)]
                     "
                   >
-                    {/* Map */}
+                    {/* MAP */}
 
-                    <div className="h-[210px] overflow-hidden">
+                    <div
+                      className="
+                        relative
+                        h-[280px]
+                        w-full
+                        overflow-hidden
+                        sm:h-[320px]
+                      "
+                    >
                       <iframe
-                        title={outlet.name}
-                        src={outlet.map}
-                        className="
-                          h-full
-                          w-full
-                          border-0
-                          grayscale-[25%]
-                        "
+                        title={`Narayan Misthan Bhandar - ${outlet.name}`}
+                        src={mapUrl}
+                        width="100%"
+                        height="100%"
+                        style={{
+                          border: 0,
+                        }}
                         loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
                       />
-                    </div>
 
-                    {/* Content */}
+                      {/* OUTLET NUMBER */}
 
-                    <div className="p-7">
-                      <h3
+                      <div
                         className="
-                          font-['Playfair_Display']
-                          text-[25px]
-                          font-semibold
-                          text-[#3B2444]
+                          pointer-events-none
+                          absolute
+                          left-5
+                          top-5
+                          flex
+                          items-center
+                          gap-2
+                          rounded-full
+                          bg-[#FFF9F2]/95
+                          px-3
+                          py-2
+                          shadow-md
+                          backdrop-blur-sm
                         "
                       >
-                        {outlet.name}
-                      </h3>
-
-                      <div className="mt-4 flex items-start gap-2">
-                        <MapPin
-                          size={14}
-                          strokeWidth={1.8}
+                        <span
                           className="
-                            mt-[2px]
-                            shrink-0
-                            text-[#7B687F]
-                          "
-                        />
-
-                        <p
-                          className="
-                            text-[12px]
-                            leading-[1.7]
-                            text-[#746C75]
+                            text-[8px]
+                            font-semibold
+                            uppercase
+                            tracking-[0.18em]
+                            text-[#C9A45C]
                           "
                         >
-                          {outlet.address}
-                        </p>
-                      </div>
-
-                      <div className="mt-5 flex items-center gap-2">
-                        <Clock3
-                          size={13}
-                          strokeWidth={1.8}
-                          className="text-[#7B687F]"
-                        />
+                          Outlet
+                        </span>
 
                         <span
                           className="
-                            text-[10px]
-                            font-medium
-                            text-[#5F5363]
+                            text-[9px]
+                            font-semibold
+                            tracking-[0.12em]
+                            text-[#340C48]
                           "
                         >
-                          {outlet.hours}
+                          {outlet.number}
                         </span>
                       </div>
+                    </div>
+
+                    {/* OUTLET DETAILS */}
+
+                    <div
+                      className="
+                        flex
+                        flex-col
+                        gap-6
+                        p-6
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                        sm:p-7
+                      "
+                    >
+                      <div>
+                        <h3
+                          className="
+                            font-[var(--font-display)]
+                            text-[27px]
+                            font-semibold
+                            leading-none
+                            text-[#340C48]
+                          "
+                        >
+                          {outlet.name}
+                        </h3>
+
+                        <div
+                          className="
+                            mt-4
+                            flex
+                            items-start
+                            gap-2
+                            text-[11px]
+                            leading-[1.6]
+                            text-[#6F6870]
+                          "
+                        >
+                          <MapPin
+                            size={15}
+                            strokeWidth={1.7}
+                            className="
+                              mt-[1px]
+                              shrink-0
+                              text-[#C9A45C]
+                            "
+                          />
+
+                          <span>
+                            {outlet.address}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* DIRECTIONS BUTTON */}
 
                       <a
-                        href="https://maps.google.com"
+                        href={directionsUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="
                           group
-                          mt-6
                           inline-flex
+                          shrink-0
                           items-center
+                          justify-center
                           gap-2
-                          border-b
-                          border-[#C5A15B]
-                          pb-1
-                          text-[10px]
+                          rounded-[7px]
+                          bg-[#340C48]
+                          px-5
+                          py-3.5
+                          text-[9px]
                           font-semibold
                           uppercase
-                          tracking-[0.14em]
-                          text-[#3B2444]
+                          tracking-[0.16em]
+                          text-white
                           transition-all
-                          hover:text-[#8C6B32]
+                          duration-300
+                          hover:bg-[#4B1D63]
+                          hover:shadow-[0_8px_20px_rgba(52,12,72,0.18)]
                         "
                       >
-                        View Directions
-
-                        <ArrowRight
-                          size={13}
+                        <Navigation
+                          size={14}
+                          strokeWidth={1.7}
                           className="
+                            text-white
                             transition-transform
                             duration-300
-                            group-hover:translate-x-1
+                            group-hover:translate-x-0.5
                           "
                         />
+
+                        <span className="text-white">
+                          Get Directions
+                        </span>
                       </a>
                     </div>
-                  </article>
-                ))}
-              </div>
-
-              {/* View All Locations */}
-
-              <div className="mt-10 text-center">
-                <a
-                  href="/outlets"
-                  className="
-                    group
-                    inline-flex
-                    items-center
-                    justify-center
-                    gap-3
-                    rounded-[4px]
-                    border
-                    border-[#C9AF7A]
-                    bg-transparent
-                    px-8
-                    py-3.5
-                    text-[10px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.16em]
-                    text-[#3B2444]
-                    transition-all
-                    duration-300
-                    hover:bg-[#4B1D63]
-                    hover:!text-white
-                    hover:shadow-[0_12px_25px_rgba(75,29,99,0.15)]
-                  "
-                >
-                  <span>View All Locations</span>
-
-                  <ArrowRight
-                    size={14}
-                    className="
-                      transition-transform
-                      duration-300
-                      group-hover:translate-x-1
-                    "
-                  />
-                </a>
-              </div>
-            </section>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
+
+        {/* ===================================================
+            BOTTOM CTA
+        ==================================================== */}
+
+       
       </main>
 
       {/* =====================================================
           FOOTER
-      ===================================================== */}
+      ====================================================== */}
 
       <Footer />
-    </div>
+    </>
   );
-}
+};
+
+export default ContactUs;

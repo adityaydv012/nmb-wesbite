@@ -6,6 +6,7 @@ import HeritageSection from "../components/home/HeritageSection";
 import OutletsSection from "../components/home/OutletsSection";
 import Footer from "../components/layout/Footer";
 import MobileTopNavigation from "../components/common/MobileTopNavigation";
+import NmbAchievement from "../components/home/NmbAchievement";
 
 function Home() {
   return (
@@ -16,6 +17,7 @@ function Home() {
       
       <CuratedCollections />
       <SignatureSweet/>
+      <NmbAchievement/>
       <HeritageSection/>
       <OutletsSection/>
       <Footer/>

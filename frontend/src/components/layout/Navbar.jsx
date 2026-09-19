@@ -16,7 +16,18 @@ import {
 } from "react-router-dom";
 
 import logo from "../../assets/logo/logo.png";
-import Ticker from "../common/Ticker";
+
+// =========================================================
+// TICKER
+// =========================================================
+// Ticker is currently disabled.
+// When you want to enable it again:
+// 1. Uncomment the import below.
+// 2. Uncomment <Ticker /> inside the header.
+// =========================================================
+
+// import Ticker from "../common/Ticker";
+
 import Login from "../auth/Login";
 import MobileTopNavigation from "../common/MobileTopNavigation";
 
@@ -317,9 +328,22 @@ function Navbar() {
           bg-[#FFF9F2]
         "
       >
-        {/* TICKER */}
+
+        {/* =====================================================
+            TICKER — CURRENTLY DISABLED
+        ======================================================
+
+        When you want the ticker back, simply remove the
+        comments around <Ticker />.
+
+        Example:
 
         <Ticker />
+
+        ====================================================== */}
+
+        {/* <Ticker /> */}
+
 
         {/* =====================================================
             DESKTOP NAVIGATION
@@ -1151,7 +1175,9 @@ function Navbar() {
         </motion.nav>
       </div>
 
-      {/* LOGIN POPUP */}
+      {/* =========================================================
+          LOGIN POPUP
+      ========================================================== */}
 
       <AnimatePresence>
         {showLogin && (
