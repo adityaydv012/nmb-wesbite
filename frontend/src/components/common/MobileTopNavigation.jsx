@@ -10,6 +10,40 @@ import { Link } from "react-router-dom";
 import logo from "../../assets/logo/logo.png";
 
 /* =========================================================
+   IOS DETECTION
+========================================================= */
+
+const isIOS =
+  typeof navigator !== "undefined" &&
+  (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (
+      navigator.platform === "MacIntel" &&
+      navigator.maxTouchPoints > 1
+    )
+  );
+
+/*
+  IMPORTANT:
+  The logo is being rendered upside down by iOS/WebKit
+  on the actual device.
+
+  We ONLY rotate it on iOS.
+
+  Chrome desktop:
+      false
+
+  Chrome DevTools mobile:
+      false
+
+  Android:
+      false
+
+  Actual iPhone/iPad:
+      true
+*/
+
+/* =========================================================
    MOBILE MENU ITEMS
 ========================================================= */
 
@@ -251,6 +285,9 @@ function MobileTopNavigation() {
 
           {/* =================================================
               CENTER LOGO
+
+              iOS ONLY:
+              rotate 180 degrees
           ================================================== */}
 
           <Link
@@ -274,17 +311,24 @@ function MobileTopNavigation() {
                 justify-center
               "
             >
-              <img
-                src={logo}
-                alt="Narayan Misthan Bhandar"
-                className="
-                  h-[48px]
-                  w-[48px]
-                  scale-x-100
-                  object-contain
-                  drop-shadow-[0_2px_5px_rgba(0,0,0,0.25)]
-                "
-              />
+              <div
+                className={
+                  isIOS
+                    ? "rotate-180"
+                    : ""
+                }
+              >
+                <img
+                  src={logo}
+                  alt="Narayan Misthan Bhandar"
+                  className="
+                    h-[48px]
+                    w-[48px]
+                    object-contain
+                    drop-shadow-[0_2px_5px_rgba(0,0,0,0.25)]
+                  "
+                />
+              </div>
             </motion.div>
           </Link>
 
@@ -423,7 +467,12 @@ function MobileTopNavigation() {
                   "
                 />
 
-                {/* BRAND */}
+                {/* =================================================
+                    DRAWER LOGO
+
+                    The wrapper handles rotation so that
+                    Framer Motion's own transform remains intact.
+                ================================================== */}
 
                 <Link
                   to="/"
@@ -435,48 +484,39 @@ function MobileTopNavigation() {
                     gap-3
                   "
                 >
-                  <motion.img
-                    initial={{
-                      opacity: 0,
-                      scale: 0.8,
-                      rotate: -8,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                      rotate: 0,
-                    }}
-                    transition={{
-                      delay: 0.25,
-                      duration: 0.45,
-                      ease: "easeOut",
-                    }}
-                    src={logo}
-                    alt="Narayan Misthan Bhandar"
-                    className="
-                      h-[50px]
-                      w-[50px]
-                      scale-x-100
-                      object-contain
-                      drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]
-                    "
-                  />
-
-                  <motion.div
-                    initial={{
-                      opacity: 0,
-                      x: -8,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                    }}
-                    transition={{
-                      delay: 0.32,
-                      duration: 0.35,
-                    }}
-                    className="flex flex-col"
-                  />
+                  <div
+                    className={
+                      isIOS
+                        ? "rotate-180"
+                        : ""
+                    }
+                  >
+                    <motion.img
+                      initial={{
+                        opacity: 0,
+                        scale: 0.8,
+                        rotate: -8,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                        rotate: 0,
+                      }}
+                      transition={{
+                        delay: 0.25,
+                        duration: 0.45,
+                        ease: "easeOut",
+                      }}
+                      src={logo}
+                      alt="Narayan Misthan Bhandar"
+                      className="
+                        h-[50px]
+                        w-[50px]
+                        object-contain
+                        drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]
+                      "
+                    />
+                  </div>
                 </Link>
 
                 {/* CLOSE */}
@@ -666,7 +706,9 @@ function MobileTopNavigation() {
                 )}
               </motion.nav>
 
-              {/* BOTTOM BRAND CARD */}
+              {/* =================================================
+                  BOTTOM BRAND CARD
+              ================================================== */}
 
               <motion.div
                 initial={{

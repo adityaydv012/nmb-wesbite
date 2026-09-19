@@ -10,6 +10,24 @@ import {
 import logo from "../../assets/logo/logo.png";
 import footerImage from "../../assets/images/Background Image with Fade.png";
 
+/* =========================================================
+   IOS DETECTION
+========================================================= */
+
+const isIOS =
+  typeof navigator !== "undefined" &&
+  (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (
+      navigator.platform === "MacIntel" &&
+      navigator.maxTouchPoints > 1
+    )
+  );
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
 export default function Footer() {
   return (
     <footer
@@ -23,7 +41,9 @@ export default function Footer() {
         color: "#C9A45C",
       }}
     >
-      {/* BACKGROUND IMAGE */}
+      {/* =====================================================
+          BACKGROUND IMAGE
+      ====================================================== */}
 
       <div className="pointer-events-none absolute inset-0">
         <img
@@ -66,7 +86,9 @@ export default function Footer() {
         />
       </div>
 
-      {/* FOOTER CONTENT */}
+      {/* =====================================================
+          FOOTER CONTENT
+      ====================================================== */}
 
       <div
         className="
@@ -92,7 +114,9 @@ export default function Footer() {
             lg:gap-10
           "
         >
-          {/* BRAND */}
+          {/* =================================================
+              BRAND
+          ================================================== */}
 
           <div className="max-w-[300px]">
             <Link
@@ -108,15 +132,39 @@ export default function Footer() {
                 p-2
               "
             >
-              <img
-                src={logo}
-                alt="Narayan Misthan Bhandar"
-                className="
-                  h-full
-                  w-full
-                  object-contain
-                "
-              />
+              {/* =================================================
+                  IOS FIX
+
+                  Desktop:
+                  normal
+
+                  Chrome mobile:
+                  normal
+
+                  Android:
+                  normal
+
+                  iPhone/iPad:
+                  rotate 180°
+              ================================================== */}
+
+              <div
+                className={
+                  isIOS
+                    ? "rotate-180"
+                    : ""
+                }
+              >
+                <img
+                  src={logo}
+                  alt="Narayan Misthan Bhandar"
+                  className="
+                    h-full
+                    w-full
+                    object-contain
+                  "
+                />
+              </div>
             </Link>
 
             <h3
@@ -146,7 +194,8 @@ export default function Footer() {
                 color: "#FFF9F2",
               }}
             >
-              Traditional flavours. Timeless celebrations.
+              Traditional flavours.
+              Timeless celebrations.
               Made with care.
             </p>
 
@@ -227,7 +276,9 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* EXPLORE */}
+          {/* =================================================
+              EXPLORE
+          ================================================== */}
 
           <FooterColumn
             title="Explore"
@@ -247,7 +298,9 @@ export default function Footer() {
             ]}
           />
 
-          {/* SHOP */}
+          {/* =================================================
+              SHOP
+          ================================================== */}
 
           <FooterColumn
             title="Shop"
@@ -271,7 +324,9 @@ export default function Footer() {
             ]}
           />
 
-          {/* VISIT */}
+          {/* =================================================
+              VISIT
+          ================================================== */}
 
           <FooterColumn
             title="Visit"
@@ -365,7 +420,10 @@ export default function Footer() {
    FOOTER COLUMN
 ========================================================= */
 
-function FooterColumn({ title, links }) {
+function FooterColumn({
+  title,
+  links,
+}) {
   return (
     <div>
       <div className="flex items-center gap-3">

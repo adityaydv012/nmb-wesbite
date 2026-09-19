@@ -1892,14 +1892,12 @@ export default function Checkout() {
               {!gstSettingsLoading &&
                 gstSettings.gstEnabled && (
                   <div className="mt-4 rounded-lg border border-[#E9DFE9] bg-[#FFF9F2] px-3 py-2.5 text-[10px] leading-4 text-[#6E6670]">
-                    GST is currently applied at{" "}
+                    GST as applicable
                     <strong className="text-[#340C48]">
-                      {
-                        gstSettings.gstRate
-                      }
-                      %
+                  
+                      
                     </strong>
-                    .
+                    
                   </div>
                 )}
 
