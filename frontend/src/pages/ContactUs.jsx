@@ -12,6 +12,10 @@ import {
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
+/* =========================================================
+   CONTACT US
+========================================================= */
+
 const ContactUs = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -144,13 +148,17 @@ const ContactUs = () => {
   };
 
   /* =========================================================
-     MAP DATA
+     OUTLET DATA
+     
+     Latitude and longitude have been removed.
+     Google Maps links are used directly for directions.
   ========================================================= */
 
   const outlets = [
     {
       number: "01",
       name: "Sadar Bazaar",
+
       address: (
         <>
           Narayan Misthan Bhandar
@@ -158,12 +166,18 @@ const ContactUs = () => {
           Sadar Bazaar
         </>
       ),
-      latitude: "27.229044614855948",
-      longitude: "79.02851123404506",
+
+      mapEmbedUrl:
+        "https://www.google.com/maps?q=Narayan+Misthan+Bhandar+Sadar+Bazaar+Mainpuri&output=embed",
+
+      directionsUrl:
+        "https://maps.app.goo.gl/UAKzzVMtVNvA4YWw7",
     },
+
     {
       number: "02",
       name: "Station Road",
+
       address: (
         <>
           Narayan Misthan Bhandar
@@ -171,8 +185,12 @@ const ContactUs = () => {
           Station Road, Devpura
         </>
       ),
-      latitude: "27.226630590007744",
-      longitude: "79.03542054846737",
+
+      mapEmbedUrl:
+        "https://www.google.com/maps?q=Narayan+Misthan+Bhandar+Station+Road+Devpura+Mainpuri&output=embed",
+
+      directionsUrl:
+        "https://maps.app.goo.gl/jLevxkDqSBCUWhuy6",
     },
   ];
 
@@ -520,9 +538,7 @@ const ContactUs = () => {
                     id="contactNumber"
                     name="contactNumber"
                     type="tel"
-                    value={
-                      formData.contactNumber
-                    }
+                    value={formData.contactNumber}
                     onChange={handleInputChange}
                     placeholder="+91 98765 43210"
                     required
@@ -613,9 +629,7 @@ const ContactUs = () => {
                   <textarea
                     id="feedbackMessage"
                     name="feedbackMessage"
-                    value={
-                      formData.feedbackMessage
-                    }
+                    value={formData.feedbackMessage}
                     onChange={handleInputChange}
                     placeholder="Write your message here..."
                     required
@@ -874,7 +888,9 @@ const ContactUs = () => {
                           text-white/85
                         "
                       >
-                        +91 9084235733,+91 9858585020
+                        +91 9084235733,
+                        <br />
+                        +91 9858585020
                       </span>
                     </span>
                   </div>
@@ -1070,10 +1086,6 @@ const ContactUs = () => {
               "
             >
               {outlets.map((outlet) => {
-                const mapUrl = `https://www.google.com/maps?q=${outlet.latitude},${outlet.longitude}&output=embed`;
-
-                const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${outlet.latitude},${outlet.longitude}`;
-
                 return (
                   <div
                     key={outlet.number}
@@ -1099,7 +1111,7 @@ const ContactUs = () => {
                     >
                       <iframe
                         title={`Narayan Misthan Bhandar - ${outlet.name}`}
-                        src={mapUrl}
+                        src={outlet.mapEmbedUrl}
                         width="100%"
                         height="100%"
                         style={{
@@ -1208,10 +1220,13 @@ const ContactUs = () => {
                         </div>
                       </div>
 
-                      {/* DIRECTIONS BUTTON */}
+                      {/* =================================================
+                          GET DIRECTIONS
+                          Uses exact Google Maps link provided by you.
+                      ================================================== */}
 
                       <a
-                        href={directionsUrl}
+                        href={outlet.directionsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="
@@ -1263,7 +1278,6 @@ const ContactUs = () => {
             BOTTOM CTA
         ==================================================== */}
 
-       
       </main>
 
       {/* =====================================================

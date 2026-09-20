@@ -20,33 +20,31 @@ import outlet1 from "../assets/images/station.JPG";
 import outlet2 from "../assets/images/sadar.JPG";
 
 /* =========================================================
-   LOCATION
-========================================================= */
-
-const LOCATION = {
-  latitude: 27.22904461485592,
-  longitude: 79.02843613241863,
-};
-
-/* =========================================================
    OUTLET DATA
 ========================================================= */
 
 const OUTLETS = [
   {
     id: 1,
-    name: "Station Road ",
+    name: "Station Road",
     subtitle: "The heart of our heritage since 1950.",
     image: outlet1,
+
     address: (
       <>
-        123 Heritage Route, Near Clock Tower
+        Station Rd, Devpura, Banshi Gohara,
         <br />
-        Mainpuri, UP 205001
+        Mainpuri, Devpura Dehat, Uttar Pradesh 205001
       </>
     ),
+
     hours: "Monday - Sunday: 8:00 AM - 10:45 PM",
+
     phone: "+91 9084235733",
+
+    directionsUrl:
+      "https://maps.app.goo.gl/jLevxkDqSBCUWhuy6",
+
     featured: true,
   },
 
@@ -55,28 +53,40 @@ const OUTLETS = [
     name: "Sadar Bazaar Flagship",
     subtitle: "Our modern take on traditional gifting.",
     image: outlet2,
+
     address: (
       <>
-        45 Market Square, Sadar Bazaar
+        Sadar Bazaar Road, SH84,
         <br />
-        Mainpuri, UP 205001
+        Mainpuri, Uttar Pradesh 205001
       </>
     ),
+
     hours: "Monday - Sunday: 8:00 AM - 10:45 PM",
+
     phone: "+91 9858585020",
+
+    directionsUrl:
+      "https://maps.app.goo.gl/UAKzzVMtVNvA4YWw7",
+
     featured: false,
   },
 ];
 
 /* =========================================================
-   MAP URLS
+   MAIN MAP
 ========================================================= */
 
-const mapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${LOCATION.latitude},${LOCATION.longitude}`;
+/*
+  Main Google Maps section.
+  This map displays the Sadar Bazaar location.
+*/
 
-const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${LOCATION.latitude},${LOCATION.longitude}`;
+const embedMapUrl =
+  "https://www.google.com/maps?q=Narayan+Misthan+Bhandar+Sadar+Bazaar+Mainpuri&output=embed";
 
-const embedMapUrl = `https://www.google.com/maps?q=${LOCATION.latitude},${LOCATION.longitude}&z=16&output=embed`;
+const mainMapsUrl =
+  "https://maps.app.goo.gl/UAKzzVMtVNvA4YWw7";
 
 /* =========================================================
    OUR OUTLETS PAGE
@@ -88,13 +98,13 @@ export default function OurOutlets() {
 
       {/* =====================================================
           NAVBAR
-      ===================================================== */}
+      ====================================================== */}
 
       <Navbar />
 
       {/* =====================================================
           HERO
-      ===================================================== */}
+      ====================================================== */}
 
       <section
         className="
@@ -110,7 +120,7 @@ export default function OurOutlets() {
         "
       >
 
-        {/* Very subtle background glow */}
+        {/* Background glow */}
 
         <div
           className="
@@ -184,12 +194,11 @@ export default function OurOutlets() {
           </p>
 
         </div>
-
       </section>
 
       {/* =====================================================
           OUTLET CARDS
-      ===================================================== */}
+      ====================================================== */}
 
       <section
         className="
@@ -217,8 +226,8 @@ export default function OurOutlets() {
       </section>
 
       {/* =====================================================
-          LOCATION / REAL GOOGLE MAP
-      ===================================================== */}
+          LOCATION / GOOGLE MAP
+      ====================================================== */}
 
       <section
         className="
@@ -246,8 +255,8 @@ export default function OurOutlets() {
         >
 
           {/* =================================================
-              REAL GOOGLE MAP
-          ================================================= */}
+              GOOGLE MAP
+          ================================================== */}
 
           <div
             className="
@@ -284,7 +293,7 @@ export default function OurOutlets() {
 
           {/* =================================================
               MAP INFORMATION
-          ================================================= */}
+          ================================================== */}
 
           <div
             className="
@@ -341,7 +350,7 @@ export default function OurOutlets() {
 
             {/* =================================================
                 LOCATION
-            ================================================= */}
+            ================================================== */}
 
             <div className="mt-8 flex gap-4">
 
@@ -394,7 +403,7 @@ export default function OurOutlets() {
 
             {/* =================================================
                 ACCESSIBILITY
-            ================================================= */}
+            ================================================== */}
 
             <div className="mt-6 flex gap-4">
 
@@ -447,7 +456,7 @@ export default function OurOutlets() {
 
             {/* =================================================
                 PARKING
-            ================================================= */}
+            ================================================== */}
 
             <div className="mt-6 flex gap-4">
 
@@ -499,50 +508,50 @@ export default function OurOutlets() {
             </div>
 
             {/* =================================================
-                MAP BUTTON
-            ================================================= */}
+                VIEW ON GOOGLE MAPS
+            ================================================== */}
 
             <a
-  href={mapsSearchUrl}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="
-    group
-    mt-8
-    inline-flex
-    w-fit
-    items-center
-    gap-2
-    rounded-[4px]
-    bg-[#4B1D63]
-    px-6
-    py-3.5
-    text-[10px]
-    font-semibold
-    uppercase
-    tracking-[0.12em]
-    !text-white
-    shadow-[0_8px_20px_rgba(75,29,99,0.16)]
-    transition-all
-    duration-300
-    hover:-translate-y-0.5
-    hover:bg-[#351247]
-    hover:!text-white
-  "
->
-  View On Google Maps
+              href={mainMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                group
+                mt-8
+                inline-flex
+                w-fit
+                items-center
+                gap-2
+                rounded-[4px]
+                bg-[#4B1D63]
+                px-6
+                py-3.5
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.12em]
+                !text-white
+                shadow-[0_8px_20px_rgba(75,29,99,0.16)]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-[#351247]
+                hover:!text-white
+              "
+            >
+              View On Google Maps
 
-  <ArrowRight
-    size={14}
-    strokeWidth={1.8}
-    className="
-      !text-white
-      transition-transform
-      duration-300
-      group-hover:translate-x-1
-    "
-  />
-</a>
+              <ArrowRight
+                size={14}
+                strokeWidth={1.8}
+                className="
+                  !text-white
+                  transition-transform
+                  duration-300
+                  group-hover:translate-x-1
+                "
+              />
+            </a>
 
           </div>
 
@@ -552,7 +561,7 @@ export default function OurOutlets() {
 
       {/* =====================================================
           FOOTER
-      ===================================================== */}
+      ====================================================== */}
 
       <Footer />
 
@@ -565,6 +574,19 @@ export default function OurOutlets() {
 ========================================================= */
 
 function OutletCard({ outlet, reverse }) {
+  /*
+    Convert:
+    +91 9084235733
+    +
+    +91 9858585020
+
+    into clickable telephone links:
+    +919084235733
+    +919858585020
+  */
+
+  const phoneUrl = `tel:${outlet.phone.replace(/\s/g, "")}`;
+
   return (
     <article
       className="
@@ -580,7 +602,7 @@ function OutletCard({ outlet, reverse }) {
 
       {/* =====================================================
           LOW-OPACITY BLURRED IMAGE BACKGROUND
-      ===================================================== */}
+      ====================================================== */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
@@ -606,7 +628,7 @@ function OutletCard({ outlet, reverse }) {
 
       {/* =====================================================
           CARD CONTENT
-      ===================================================== */}
+      ====================================================== */}
 
       <div
         className={`
@@ -630,7 +652,7 @@ function OutletCard({ outlet, reverse }) {
 
         {/* =================================================
             IMAGE
-        ================================================= */}
+        ================================================== */}
 
         <div className="relative overflow-hidden rounded-[12px]">
 
@@ -689,7 +711,7 @@ function OutletCard({ outlet, reverse }) {
 
         {/* =================================================
             DETAILS
-        ================================================= */}
+        ================================================== */}
 
         <div className="flex flex-col">
 
@@ -751,7 +773,7 @@ function OutletCard({ outlet, reverse }) {
               title="Contact"
             >
               <a
-                href={`tel:${outlet.phone.replace(/\s/g, "")}`}
+                href={phoneUrl}
                 className="
                   transition-colors
                   hover:text-[#4B1D63]
@@ -765,14 +787,16 @@ function OutletCard({ outlet, reverse }) {
 
           {/* =================================================
               BUTTONS
-          ================================================= */}
+          ================================================== */}
 
           <div className="mt-8 flex flex-wrap gap-3">
 
-            {/* Get Directions */}
+            {/* =================================================
+                GET DIRECTIONS
+            ================================================== */}
 
             <a
-              href={directionsUrl}
+              href={outlet.directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="
@@ -810,10 +834,12 @@ function OutletCard({ outlet, reverse }) {
 
             </a>
 
-            {/* Call Store */}
+            {/* =================================================
+                CALL STORE
+            ================================================== */}
 
             <a
-              href={`tel:${outlet.phone.replace(/\s/g, "")}`}
+              href={phoneUrl}
               className="
                 inline-flex
                 items-center

@@ -11,23 +11,19 @@ const outlets = [
   {
     name: "Station Road",
     city: "Mainpuri, Uttar Pradesh",
-
-    latitude: "27.226630590007744",
-    longitude: "79.03542054846737",
-
     openingHours: "8am - 10:45pm",
     contact: "+91 9084235733",
+    directionsUrl:
+      "https://maps.app.goo.gl/jLevxkDqSBCUWhuy6",
   },
 
   {
     name: "Sadar Bazaar",
     city: "Mainpuri, Uttar Pradesh",
-
-    latitude: "27.229044614855948",
-    longitude: "79.02851123404506",
-
     openingHours: "8am - 10:45pm",
     contact: "+91 9858585020",
+    directionsUrl:
+      "https://maps.app.goo.gl/UAKzzVMtVNvA4YWw7",
   },
 ];
 
@@ -42,7 +38,7 @@ export default function OutletsSection() {
 
         {/* =====================================================
             HEADER
-        ===================================================== */}
+        ====================================================== */}
 
         <div className="mx-auto max-w-[620px] text-center">
           <h2
@@ -71,16 +67,17 @@ export default function OutletsSection() {
               sm:text-[13px]
             "
           >
-            A little sweetness is always closer than you think. Visit Narayan
-            Misthan Bhandar at our Mainpuri outlets and experience the taste
-            of traditional Indian mithai, freshly prepared and beautifully
+            A little sweetness is always closer than you think.
+            Visit Narayan Misthan Bhandar at our Mainpuri
+            outlets and experience the taste of traditional
+            Indian mithai, freshly prepared and beautifully
             served.
           </p>
         </div>
 
         {/* =====================================================
             OUTLETS CONTENT
-        ===================================================== */}
+        ====================================================== */}
 
         <div
           className="
@@ -128,144 +125,135 @@ export default function OutletsSection() {
           ==================================================== */}
 
           <div className="flex flex-col gap-5">
-            {outlets.map((outlet) => {
+            {outlets.map((outlet) => (
+              <div
+                key={outlet.name}
+                className="
+                  flex
+                  min-h-[210px]
+                  flex-1
+                  flex-col
+                  justify-center
+                  rounded-[10px]
+                  bg-white
+                  px-7
+                  py-7
+                  shadow-[0_8px_25px_rgba(67,34,65,0.05)]
+                  sm:px-8
+                "
+              >
 
-              /* Google Maps Directions URL */
-              const directionsUrl =
-                `https://www.google.com/maps/dir/?api=1&destination=${outlet.latitude},${outlet.longitude}`;
+                {/* =================================================
+                    LOCATION
+                ================================================== */}
 
-              return (
-                <div
-                  key={outlet.name}
+                <div className="flex items-center gap-3">
+                  <MapPin
+                    size={18}
+                    strokeWidth={1.7}
+                    className="text-[#C89C4D]"
+                  />
+
+                  <h3
+                    className="
+                      font-[var(--font-display)]
+                      text-[21px]
+                      font-semibold
+                      text-[var(--nmb-purple)]
+                      sm:text-[22px]
+                    "
+                  >
+                    {outlet.name}
+                  </h3>
+                </div>
+
+                {/* =================================================
+                    CITY
+                ================================================== */}
+
+                <p
                   className="
-                    flex
-                    min-h-[210px]
-                    flex-1
-                    flex-col
-                    justify-center
-                    rounded-[10px]
-                    bg-white
-                    px-7
-                    py-7
-                    shadow-[0_8px_25px_rgba(67,34,65,0.05)]
-                    sm:px-8
+                    mt-1
+                    pl-[31px]
+                    text-[11px]
+                    text-[#857C86]
                   "
                 >
+                  {outlet.city}
+                </p>
 
-                  {/* =================================================
-                      LOCATION
-                  ================================================== */}
+                {/* =================================================
+                    TIMINGS & CONTACT
+                ================================================== */}
 
-                  <div className="flex items-center gap-3">
-                    <MapPin
-                      size={18}
-                      strokeWidth={1.7}
-                      className="text-[#C89C4D]"
-                    />
-
-                    <h3
-                      className="
-                        font-[var(--font-display)]
-                        text-[21px]
-                        font-semibold
-                        text-[var(--nmb-purple)]
-                        sm:text-[22px]
-                      "
-                    >
-                      {outlet.name}
-                    </h3>
-                  </div>
-
-                  {/* =================================================
-                      CITY
-                  ================================================== */}
+                <div className="mt-5 pl-[31px]">
+                  <p
+                    className="
+                      text-[9px]
+                      leading-[1.5]
+                      text-[#817982]
+                    "
+                  >
+                    Opening Hours — {outlet.openingHours}
+                  </p>
 
                   <p
                     className="
                       mt-1
-                      pl-[31px]
-                      text-[11px]
-                      text-[#857C86]
+                      text-[9px]
+                      leading-[1.5]
+                      text-[#817982]
                     "
                   >
-                    {outlet.city}
+                    Contact — {outlet.contact}
                   </p>
-
-                  {/* =================================================
-                      TIMINGS & CONTACT
-                  ================================================== */}
-
-                  <div className="mt-5 pl-[31px]">
-
-                    <p
-                      className="
-                        text-[9px]
-                        leading-[1.5]
-                        text-[#817982]
-                      "
-                    >
-                      Opening Hours — {outlet.openingHours}
-                    </p>
-
-                    <p
-                      className="
-                        mt-1
-                        text-[9px]
-                        leading-[1.5]
-                        text-[#817982]
-                      "
-                    >
-                      Contact — {outlet.contact}
-                    </p>
-
-                  </div>
-
-                  {/* =================================================
-                      DIRECTIONS
-                  ================================================== */}
-
-                  <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Get directions to ${outlet.name}`}
-                    className="
-                      group
-                      mt-5
-                      flex
-                      w-fit
-                      items-center
-                      gap-2
-                      pl-[31px]
-                      text-[10px]
-                      font-medium
-                      uppercase
-                      tracking-[0.04em]
-                      text-[var(--nmb-purple)]
-                      transition-all
-                      duration-300
-                      hover:gap-3
-                      hover:text-[#C89C4D]
-                    "
-                  >
-                    <span>Get Directions</span>
-
-                    <ArrowRight
-                      size={13}
-                      strokeWidth={1.7}
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-1
-                      "
-                    />
-                  </a>
-
                 </div>
-              );
-            })}
-          </div>
 
+                {/* =================================================
+                    DIRECTIONS
+                ================================================== */}
+
+                <a
+                  href={outlet.directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Get directions to ${outlet.name}`}
+                  className="
+                    group
+                    mt-5
+                    flex
+                    w-fit
+                    items-center
+                    gap-2
+                    pl-[31px]
+                    text-[10px]
+                    font-medium
+                    uppercase
+                    tracking-[0.04em]
+                    text-[var(--nmb-purple)]
+                    transition-all
+                    duration-300
+                    hover:gap-3
+                    hover:text-[#C89C4D]
+                  "
+                >
+                  <span>
+                    Get Directions
+                  </span>
+
+                  <ArrowRight
+                    size={13}
+                    strokeWidth={1.7}
+                    className="
+                      transition-transform
+                      duration-300
+                      group-hover:translate-x-1
+                    "
+                  />
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

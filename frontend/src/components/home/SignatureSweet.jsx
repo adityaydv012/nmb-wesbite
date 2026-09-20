@@ -266,7 +266,10 @@ function SignatureSweet() {
   }
 
   return (
-    <section className="w-full bg-[var(--nmb-cream)] py-12 sm:py-14 lg:py-20">
+   <section
+  id="signature-sweet"
+  className="w-full bg-[var(--nmb-cream)] py-12 sm:py-14 lg:py-20"
+>
       <div className="mx-auto w-full max-w-[1088px] px-4 sm:px-6 lg:px-0">
         <div className="grid w-full overflow-hidden rounded-[14px] bg-white lg:grid-cols-2">
 

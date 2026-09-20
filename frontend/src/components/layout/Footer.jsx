@@ -1,11 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  Share2,
-  Mail,
-  MessageSquare,
-  ArrowUpRight,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import logo from "../../assets/logo/logo.png";
 import footerImage from "../../assets/images/Background Image with Fade.png";
@@ -104,7 +99,9 @@ export default function Footer() {
           lg:py-20
         "
       >
-        {/* MAIN GRID */}
+        {/* =====================================================
+            MAIN GRID
+        ====================================================== */}
 
         <div
           className="
@@ -132,29 +129,9 @@ export default function Footer() {
                 p-2
               "
             >
-              {/* =================================================
-                  IOS FIX
+              {/* IOS FIX */}
 
-                  Desktop:
-                  normal
-
-                  Chrome mobile:
-                  normal
-
-                  Android:
-                  normal
-
-                  iPhone/iPad:
-                  rotate 180°
-              ================================================== */}
-
-              <div
-                className={
-                  isIOS
-                    ? "rotate-180"
-                    : ""
-                }
-              >
+              <div className={isIOS ? "rotate-180" : ""}>
                 <img
                   src={logo}
                   alt="Narayan Misthan Bhandar"
@@ -199,36 +176,21 @@ export default function Footer() {
               Made with care.
             </p>
 
-            {/* SOCIAL BUTTONS */}
+            {/* =================================================
+                SOCIAL BUTTONS
+            ================================================== */}
 
             <div className="mt-7 flex items-center gap-2.5">
-              <a
-                href="#"
-                aria-label="Share"
-                className="
-                  flex
-                  h-8
-                  w-8
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-[#C9A45C]
-                  text-[#C9A45C]
-                  transition-all
-                  hover:bg-[#C9A45C]
-                  hover:text-[#4B1D63]
-                "
-              >
-                <Share2
-                  size={13}
-                  strokeWidth={1.5}
-                />
-              </a>
+
+              {/* =================================================
+                  INSTAGRAM
+              ================================================== */}
 
               <a
-                href="mailto:hello@example.com"
-                aria-label="Email"
+                href="https://www.instagram.com/narayanmisthanbhandar?utm_source=qr&stkn=MWc1azY1ZWVwejVw"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
                 className="
                   flex
                   h-8
@@ -244,15 +206,50 @@ export default function Footer() {
                   hover:text-[#4B1D63]
                 "
               >
-                <Mail
-                  size={13}
-                  strokeWidth={1.5}
-                />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="5"
+                  />
+
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="4"
+                  />
+
+                  <circle
+                    cx="17.5"
+                    cy="6.5"
+                    r="1"
+                    fill="currentColor"
+                    stroke="none"
+                  />
+                </svg>
               </a>
 
-              <Link
-                to="/contact-us"
-                aria-label="Contact Us"
+              {/* =================================================
+                  FACEBOOK
+              ================================================== */}
+
+              <a
+                href="https://www.facebook.com/nmbmainpuri/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
                 className="
                   flex
                   h-8
@@ -268,11 +265,24 @@ export default function Footer() {
                   hover:text-[#4B1D63]
                 "
               >
-                <MessageSquare
-                  size={13}
-                  strokeWidth={1.5}
-                />
-              </Link>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="
+                      M14.5 8H17V4.5
+                      C16.3 4.4 15.4 4.3 14.5 4.3
+                      C11.7 4.3 9.8 6 9.8 9.1V11.5H7V15H9.8V21H13.5V15H16.4L17 11.5H13.5V9.4
+                      C13.5 8.5 13.8 8 14.5 8Z
+                    "
+                  />
+                </svg>
+              </a>
+
             </div>
           </div>
 
@@ -347,7 +357,9 @@ export default function Footer() {
           />
         </div>
 
-        {/* DIVIDER */}
+        {/* =====================================================
+            DIVIDER
+        ====================================================== */}
 
         <div
           className="
@@ -361,7 +373,9 @@ export default function Footer() {
           }}
         />
 
-        {/* BOTTOM */}
+        {/* =====================================================
+            BOTTOM
+        ====================================================== */}
 
         <div
           className="
