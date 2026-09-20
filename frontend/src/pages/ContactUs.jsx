@@ -764,7 +764,7 @@ const ContactUs = () => {
                   {/* EMAIL */}
 
                   <a
-                    href="mailto:sweetsnmb@gmail.com"
+                    href="mailto:narayanmisthanbhandar@gmail.com"
                     className="
                       group
                       flex
@@ -817,7 +817,7 @@ const ContactUs = () => {
                           group-hover:text-white
                         "
                       >
-                        sweetsnmb@gmail.com
+                        narayanmisthanbhandar@gmail.com
                       </span>
                     </span>
                   </a>
@@ -874,7 +874,7 @@ const ContactUs = () => {
                           text-white/85
                         "
                       >
-                        Contact our store
+                        +91 9084235733,+91 9858585020
                       </span>
                     </span>
                   </div>
@@ -934,7 +934,7 @@ const ContactUs = () => {
                       >
                         Sadar Bazaar & Station Road,
                         <br />
-                        Devpura
+                        Mainpuri
                       </span>
                     </span>
                   </div>

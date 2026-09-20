@@ -824,7 +824,7 @@ export default function OurStory() {
                       text-[#3B2444]
                     "
                   >
-                    01
+                    05
                   </p>
 
                   <p
@@ -838,7 +838,7 @@ export default function OurStory() {
                       text-[#A27A36]
                     "
                   >
-                    District
+                    State
                     <br />
                     Recognition
                   </p>

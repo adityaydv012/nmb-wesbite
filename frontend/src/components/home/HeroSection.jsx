@@ -337,18 +337,7 @@ function HeroSection() {
                   </span>
                 </motion.a>
 
-                <motion.a
-                  href="/gifting"
-                  whileHover={{
-                    scale: 1.03,
-                  }}
-                  whileTap={{
-                    scale: 0.97,
-                  }}
-                  className="nmb-hero-secondary-button"
-                >
-                  SHOP GIFTING
-                </motion.a>
+               
               </motion.div>
             </>
           )}

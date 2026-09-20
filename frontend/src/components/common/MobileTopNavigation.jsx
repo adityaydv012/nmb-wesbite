@@ -774,7 +774,7 @@ function MobileTopNavigation() {
                       text-[#C9A45C]
                     "
                   >
-                    Since 1950
+                    Since 1870
                   </p>
 
                   <p

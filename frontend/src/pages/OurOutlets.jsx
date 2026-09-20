@@ -35,7 +35,7 @@ const LOCATION = {
 const OUTLETS = [
   {
     id: 1,
-    name: "Station Road Flagship",
+    name: "Station Road ",
     subtitle: "The heart of our heritage since 1950.",
     image: outlet1,
     address: (
@@ -45,14 +45,14 @@ const OUTLETS = [
         Mainpuri, UP 205001
       </>
     ),
-    hours: "Monday - Sunday: 8:00 AM - 10:00 PM",
-    phone: "+91 98765 43210",
+    hours: "Monday - Sunday: 8:00 AM - 10:45 PM",
+    phone: "+91 9084235733",
     featured: true,
   },
 
   {
     id: 2,
-    name: "Sadar Bazaar Boutique",
+    name: "Sadar Bazaar Flagship",
     subtitle: "Our modern take on traditional gifting.",
     image: outlet2,
     address: (
@@ -62,8 +62,8 @@ const OUTLETS = [
         Mainpuri, UP 205001
       </>
     ),
-    hours: "Monday - Sunday: 9:00 AM - 9:00 PM",
-    phone: "+91 98765 43211",
+    hours: "Monday - Sunday: 8:00 AM - 10:45 PM",
+    phone: "+91 9858585020",
     featured: false,
   },
 ];

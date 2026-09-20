@@ -14,9 +14,9 @@ function Home() {
     <Navbar/>
     <MobileTopNavigation/>
       <HeroSection />
-      
+       <SignatureSweet/>
       <CuratedCollections />
-      <SignatureSweet/>
+     
       <NmbAchievement/>
       <HeritageSection/>
       <OutletsSection/>

@@ -153,7 +153,7 @@ export default function HeritageSection() {
                   text-[var(--nmb-purple)]
                 "
               >
-                Crafted since 1950
+                Crafted since 1870
               </span>
 
             </div>

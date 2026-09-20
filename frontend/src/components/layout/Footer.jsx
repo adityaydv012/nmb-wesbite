@@ -379,7 +379,7 @@ export default function Footer() {
           }}
         >
           <p>
-            © 2024 Narayan Misthan Bhandar.
+            ©Narayan Misthan Bhandar.
             All rights reserved.
           </p>
 

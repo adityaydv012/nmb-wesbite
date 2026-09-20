@@ -1,7 +1,7 @@
 import React from "react";
 import { MapPin, ArrowRight } from "lucide-react";
 
-import outletsImage from "../../assets/images/sadar.JPG";
+import outletsImage from "../../assets/images/home-outlet.jpeg";
 
 /* =========================================================
    OUTLETS
@@ -11,14 +11,23 @@ const outlets = [
   {
     name: "Station Road",
     city: "Mainpuri, Uttar Pradesh",
+
     latitude: "27.226630590007744",
     longitude: "79.03542054846737",
+
+    openingHours: "8am - 10:45pm",
+    contact: "+91 9084235733",
   },
+
   {
     name: "Sadar Bazaar",
     city: "Mainpuri, Uttar Pradesh",
+
     latitude: "27.229044614855948",
     longitude: "79.02851123404506",
+
+    openingHours: "8am - 10:45pm",
+    contact: "+91 9858585020",
   },
 ];
 
@@ -122,7 +131,6 @@ export default function OutletsSection() {
             {outlets.map((outlet) => {
 
               /* Google Maps Directions URL */
-
               const directionsUrl =
                 `https://www.google.com/maps/dir/?api=1&destination=${outlet.latitude},${outlet.longitude}`;
 
@@ -184,19 +192,10 @@ export default function OutletsSection() {
                   </p>
 
                   {/* =================================================
-                      TIMINGS
+                      TIMINGS & CONTACT
                   ================================================== */}
 
                   <div className="mt-5 pl-[31px]">
-                    <p
-                      className="
-                        text-[9px]
-                        leading-[1.5]
-                        text-[#817982]
-                      "
-                    >
-                      Opening Hours — Coming
-                    </p>
 
                     <p
                       className="
@@ -205,7 +204,7 @@ export default function OutletsSection() {
                         text-[#817982]
                       "
                     >
-                      Soon
+                      Opening Hours — {outlet.openingHours}
                     </p>
 
                     <p
@@ -216,8 +215,9 @@ export default function OutletsSection() {
                         text-[#817982]
                       "
                     >
-                      Contact — Coming Soon
+                      Contact — {outlet.contact}
                     </p>
+
                   </div>
 
                   {/* =================================================
@@ -248,9 +248,7 @@ export default function OutletsSection() {
                       hover:text-[#C89C4D]
                     "
                   >
-                    <span>
-                      Get Directions
-                    </span>
+                    <span>Get Directions</span>
 
                     <ArrowRight
                       size={13}
