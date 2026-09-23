@@ -5,8 +5,24 @@ import {
   msg91RetryOtp,
 } from "../../services/msg91";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5001";
+const RAW_API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5001/api";
+
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, "");
+
+/*
+ * Your application normally uses:
+ *
+ * VITE_API_BASE_URL=https://api.nmbsweets.com/api
+ *
+ * To avoid /api/api/... in case an environment variable
+ * is changed later, this builds the endpoint safely.
+ */
+const MSG91_VERIFY_URL = API_BASE_URL.endsWith("/api")
+  ? `${API_BASE_URL}/auth/msg91/verify`
+  : `${API_BASE_URL}/api/auth/msg91/verify`;
 
 const RESEND_TIME = 30;
 
@@ -20,14 +36,16 @@ const VerifyOtp = ({
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resendTimer, setResendTimer] = useState(RESEND_TIME);
+  const [resendTimer, setResendTimer] = useState(
+    RESEND_TIME
+  );
 
   // -----------------------------------------
   // RESEND TIMER
   // -----------------------------------------
   useEffect(() => {
     if (resendTimer <= 0) {
-      return;
+      return undefined;
     }
 
     const timer = setInterval(() => {
@@ -47,8 +65,8 @@ const VerifyOtp = ({
   // -----------------------------------------
   // OTP INPUT
   // -----------------------------------------
-  const handleOtpChange = (e) => {
-    const value = e.target.value
+  const handleOtpChange = (event) => {
+    const value = event.target.value
       .replace(/\D/g, "")
       .slice(0, 6);
 
@@ -60,13 +78,27 @@ const VerifyOtp = ({
   };
 
   // -----------------------------------------
+  // NORMALIZE PHONE
+  // -----------------------------------------
+  const normalizedPhone = String(phone || "")
+    .replace(/\D/g, "")
+    .slice(-10);
+
+  // -----------------------------------------
   // VERIFY OTP
   // -----------------------------------------
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
+  const handleVerifyOtp = async (event) => {
+    event.preventDefault();
 
     if (otp.length !== 6) {
       setError("Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    if (normalizedPhone.length !== 10) {
+      setError(
+        "Invalid mobile number. Please go back and try again."
+      );
       return;
     }
 
@@ -79,8 +111,10 @@ const VerifyOtp = ({
       // -----------------------------------------
       const msg91Response = await msg91VerifyOtp(otp);
 
-      // MSG91 Custom Web SDK returns the access
-      // token inside the "message" property.
+      /*
+       * MSG91 Custom Web SDK commonly returns the
+       * access token in the "message" property.
+       */
       const accessToken =
         msg91Response?.message ||
         msg91Response?.token ||
@@ -100,16 +134,15 @@ const VerifyOtp = ({
       // STEP 2: SEND MSG91 TOKEN TO BACKEND
       // -----------------------------------------
       const response = await fetch(
-        `${API_BASE_URL}/api/auth/msg91/verify`,
+        MSG91_VERIFY_URL,
         {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
-
           body: JSON.stringify({
-            phone,
+            phone: normalizedPhone,
             accessToken,
           }),
         }
@@ -118,36 +151,70 @@ const VerifyOtp = ({
       // -----------------------------------------
       // STEP 3: READ BACKEND RESPONSE
       // -----------------------------------------
-      let data;
+      const contentType =
+        response.headers.get("content-type") || "";
 
-      try {
-        data = await response.json();
-      } catch {
+      let data = null;
+      let responseText = "";
+
+      if (contentType.includes("application/json")) {
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+      } else {
+        try {
+          responseText = await response.text();
+        } catch {
+          responseText = "";
+        }
+      }
+
+      // -----------------------------------------
+      // STEP 4: HANDLE HTTP ERROR
+      // -----------------------------------------
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(
+            "Authentication service was not found. Please try again later."
+          );
+        }
+
+        throw new Error(
+          data?.message ||
+            responseText ||
+            `Unable to complete login. Server returned ${response.status}.`
+        );
+      }
+
+      // -----------------------------------------
+      // STEP 5: VALIDATE RESPONSE
+      // -----------------------------------------
+      if (!data) {
         throw new Error(
           "Invalid response received from server."
         );
       }
 
-      // -----------------------------------------
-      // STEP 4: HANDLE BACKEND ERROR
-      // -----------------------------------------
-      if (!response.ok) {
+      if (data.success === false) {
         throw new Error(
-          data?.message || "Unable to complete login."
+          data.message ||
+            "Unable to complete login."
         );
       }
 
       // -----------------------------------------
-      // STEP 5: CHECK NMB JWT
+      // STEP 6: CHECK NMB JWT
       // -----------------------------------------
-      if (!data?.token) {
+      if (!data.token) {
         throw new Error(
           "Login completed, but application token was not received."
         );
       }
 
       // -----------------------------------------
-      // STEP 6: SAVE LOGIN DATA
+      // STEP 7: SAVE LOGIN DATA
       // -----------------------------------------
       localStorage.setItem(
         "nmb_token",
@@ -162,21 +229,21 @@ const VerifyOtp = ({
       }
 
       // -----------------------------------------
-      // STEP 7: CALLBACK
+      // STEP 8: LOGIN CALLBACK
       // -----------------------------------------
       if (onLoginSuccess) {
         onLoginSuccess(data);
       }
 
       // -----------------------------------------
-      // STEP 8: CLOSE MODAL
+      // STEP 9: CLOSE MODAL
       // -----------------------------------------
       if (onClose) {
         onClose();
       }
-    } catch (error) {
+    } catch (requestError) {
       setError(
-        error?.message ||
+        requestError?.message ||
           "Invalid or expired OTP. Please try again."
       );
     } finally {
@@ -200,16 +267,16 @@ const VerifyOtp = ({
     setError("");
 
     try {
-      await msg91RetryOtp();
+      /*
+       * "11" = SMS channel for MSG91.
+       */
+      await msg91RetryOtp("11");
 
-      // Clear old OTP
       setOtp("");
-
-      // Restart timer
       setResendTimer(RESEND_TIME);
-    } catch (error) {
+    } catch (requestError) {
       setError(
-        error?.message ||
+        requestError?.message ||
           "Unable to resend OTP. Please try again."
       );
     } finally {
@@ -220,8 +287,11 @@ const VerifyOtp = ({
   // -----------------------------------------
   // MASK PHONE NUMBER
   // -----------------------------------------
-  const maskedPhone = phone
-    ? `+91 ${phone.slice(0, 2)}******${phone.slice(-2)}`
+  const maskedPhone = normalizedPhone
+    ? `+91 ${normalizedPhone.slice(
+        0,
+        2
+      )}******${normalizedPhone.slice(-2)}`
     : "";
 
   // -----------------------------------------
@@ -236,6 +306,7 @@ const VerifyOtp = ({
           type="button"
           onClick={onClose}
           disabled={loading}
+          aria-label="Close"
           className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-xl text-[#340C48] transition hover:bg-[#340C48]/10 disabled:opacity-50"
         >
           ×
@@ -296,13 +367,17 @@ const VerifyOtp = ({
               disabled={loading}
               autoFocus
               placeholder="••••••"
+              aria-label="6-digit OTP"
               className="w-full rounded-xl border border-[#340C48]/20 bg-white px-4 py-4 text-center text-2xl font-semibold tracking-[0.6em] text-[#340C48] outline-none transition focus:border-[#C9A45C] focus:ring-2 focus:ring-[#C9A45C]/20 disabled:opacity-60"
             />
           </div>
 
           {/* ERROR */}
           {error && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+            <div
+              className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600"
+              role="alert"
+            >
               {error}
             </div>
           )}
@@ -369,6 +444,7 @@ const VerifyOtp = ({
         <p className="mt-6 text-center text-xs leading-5 text-[#4C444E]/70">
           Never share your OTP with anyone.
         </p>
+
       </div>
     </div>
   );

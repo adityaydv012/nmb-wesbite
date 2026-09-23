@@ -1,4 +1,5 @@
-const MSG91_WIDGET_ID = "366976714133323939303439";
+const MSG91_WIDGET_ID =
+  "366976714133323939303439";
 
 const MSG91_TOKEN =
   import.meta.env.VITE_MSG91_WIDGET_TOKEN;
@@ -6,8 +7,9 @@ const MSG91_TOKEN =
 const MSG91_SCRIPT =
   "https://verify.msg91.com/otp-provider.js";
 
-let initialized = false;
+const MSG91_SMS_CHANNEL = "11";
 
+let initialized = false;
 let initializationPromise = null;
 
 /**
@@ -105,6 +107,9 @@ export function loadMSG91() {
         );
 
       if (existingScript) {
+        /*
+         * If the SDK already exists, initialize it.
+         */
         initialize();
         return;
       }
@@ -142,7 +147,17 @@ export function loadMSG91() {
 export async function msg91SendOtp(phone) {
   await loadMSG91();
 
-  const identifier = `91${phone}`;
+  const normalizedPhone = String(phone || "")
+    .replace(/\D/g, "")
+    .slice(-10);
+
+  if (normalizedPhone.length !== 10) {
+    throw new Error(
+      "Please enter a valid 10-digit mobile number."
+    );
+  }
+
+  const identifier = `91${normalizedPhone}`;
 
   return new Promise((resolve, reject) => {
     if (
@@ -179,6 +194,16 @@ export async function msg91SendOtp(phone) {
 export async function msg91VerifyOtp(otp) {
   await loadMSG91();
 
+  const normalizedOtp = String(otp || "")
+    .replace(/\D/g, "")
+    .slice(0, 6);
+
+  if (normalizedOtp.length !== 6) {
+    throw new Error(
+      "Please enter a valid 6-digit OTP."
+    );
+  }
+
   return new Promise((resolve, reject) => {
     if (
       typeof window.verifyOtp !== "function"
@@ -192,7 +217,7 @@ export async function msg91VerifyOtp(otp) {
     }
 
     window.verifyOtp(
-      Number(otp),
+      Number(normalizedOtp),
       (data) => {
         resolve(data);
       },
@@ -210,9 +235,23 @@ export async function msg91VerifyOtp(otp) {
 
 /**
  * RESEND OTP
+ *
+ * MSG91 channels:
+ * SMS      = "11"
+ * Voice    = "4"
+ * Email    = "3"
+ * WhatsApp = "12"
  */
-export async function msg91RetryOtp() {
+export async function msg91RetryOtp(
+  channel = MSG91_SMS_CHANNEL
+) {
   await loadMSG91();
+
+  if (!channel) {
+    throw new Error(
+      "MSG91 resend channel is required."
+    );
+  }
 
   return new Promise((resolve, reject) => {
     if (
@@ -226,10 +265,8 @@ export async function msg91RetryOtp() {
       return;
     }
 
-    // null = use MSG91's default
-    // resend channel/configuration
     window.retryOtp(
-      null,
+      channel,
       (data) => {
         resolve(data);
       },
