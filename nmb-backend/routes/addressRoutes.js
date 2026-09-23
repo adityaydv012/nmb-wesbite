@@ -12,35 +12,50 @@ import {
 
 const router = express.Router();
 
-// Get all addresses
+/* ============================================
+   GET ALL ADDRESSES
+============================================ */
+
 router.get(
   "/",
   authMiddleware,
   getAddresses
 );
 
-// Add new address
+/* ============================================
+   ADD ADDRESS
+============================================ */
+
 router.post(
   "/",
   authMiddleware,
   addAddress
 );
 
-// Update address
+/* ============================================
+   UPDATE ADDRESS
+============================================ */
+
 router.put(
   "/:addressId",
   authMiddleware,
   updateAddress
 );
 
-// Set default address
+/* ============================================
+   SET DEFAULT ADDRESS
+============================================ */
+
 router.put(
   "/:addressId/default",
   authMiddleware,
   setDefaultAddress
 );
 
-// Delete address
+/* ============================================
+   DELETE ADDRESS
+============================================ */
+
 router.delete(
   "/:addressId",
   authMiddleware,

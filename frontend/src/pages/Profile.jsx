@@ -29,11 +29,15 @@ import {
 } from "../services/api";
 
 const EMPTY_ADDRESS = {
+  fullName: "",
+  phone: "",
   houseNo: "",
   area: "",
+  landmark: "",
   city: "",
   state: "",
   pinCode: "",
+  addressType: "Home",
 };
 
 export default function Profile() {
@@ -54,11 +58,11 @@ export default function Profile() {
     email: "",
   });
 
-  const [addressForm, setAddressForm] =
-    useState(EMPTY_ADDRESS);
+  const [addressForm, setAddressForm] = useState({
+    ...EMPTY_ADDRESS,
+  });
 
-  const [editingAddressId, setEditingAddressId] =
-    useState(null);
+  const [editingAddressId, setEditingAddressId] = useState(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -97,6 +101,7 @@ export default function Profile() {
         [];
 
       setProfile(user);
+
       setAddresses(
         Array.isArray(savedAddresses)
           ? savedAddresses
@@ -228,25 +233,44 @@ export default function Profile() {
 
   const openAddAddressModal = () => {
     setEditingAddressId(null);
-    setAddressForm({ ...EMPTY_ADDRESS });
+
+    setAddressForm({
+      ...EMPTY_ADDRESS,
+    });
+
     setError("");
     setSuccess("");
     setAddressModalOpen(true);
   };
 
   const openEditAddressModal = (address) => {
-    setEditingAddressId(address._id || address.id);
+    setEditingAddressId(
+      address?._id || address?.id || null
+    );
 
     setAddressForm({
-      houseNo: address.houseNo || "",
-      area: address.area || "",
-      city: address.city || "",
-      state: address.state || "",
-      pinCode:
-        address.pinCode ||
-        address.pincode ||
-        address.postalCode ||
+      fullName:
+        address?.fullName ||
+        address?.name ||
         "",
+      phone:
+        address?.phone ||
+        address?.mobileNumber ||
+        address?.number ||
+        "",
+      houseNo: address?.houseNo || "",
+      area: address?.area || "",
+      landmark: address?.landmark || "",
+      city: address?.city || "",
+      state: address?.state || "",
+      pinCode:
+        address?.pinCode ||
+        address?.pincode ||
+        address?.postalCode ||
+        "",
+      addressType:
+        address?.addressType ||
+        "Home",
     });
 
     setError("");
@@ -259,128 +283,169 @@ export default function Profile() {
 
     setAddressModalOpen(false);
     setEditingAddressId(null);
-    setAddressForm({ ...EMPTY_ADDRESS });
+
+    setAddressForm({
+      ...EMPTY_ADDRESS,
+    });
+
     setError("");
   };
 
   const handleAddressInput = (event) => {
     const { name, value } = event.target;
 
+    let nextValue = value;
+
+    if (name === "phone") {
+      nextValue = value
+        .replace(/\D/g, "")
+        .slice(0, 10);
+    }
+
+    if (name === "pinCode") {
+      nextValue = value
+        .replace(/\D/g, "")
+        .slice(0, 6);
+    }
+
     setAddressForm((currentForm) => ({
       ...currentForm,
-      [name]: value,
+      [name]: nextValue,
     }));
   };
 
- const handleAddressSubmit = async (event) => {
-  event.preventDefault();
+  const handleAddressSubmit = async (event) => {
+    event.preventDefault();
 
-  const cleanedAddress = {
-    houseNo: addressForm.houseNo.trim(),
-    area: addressForm.area.trim(),
-    city: addressForm.city.trim(),
-    state: addressForm.state.trim(),
-    pinCode: addressForm.pinCode.trim(),
-  };
-
-  const customerName =
-    profile?.fullName ||
-    profile?.name ||
-    profileForm.fullName ||
-    "";
-
-  const customerPhone =
-    profile?.phone ||
-    profile?.mobileNumber ||
-    profile?.number ||
-    "";
-
-  if (!customerName.trim()) {
-    setError(
-      "Please update your full name before adding an address."
-    );
-    return;
-  }
-
-  if (!customerPhone.trim()) {
-    setError(
-      "Your phone number is missing. Please log in again."
-    );
-    return;
-  }
-
-  if (
-    !cleanedAddress.houseNo ||
-    !cleanedAddress.area ||
-    !cleanedAddress.city ||
-    !cleanedAddress.state ||
-    !cleanedAddress.pinCode
-  ) {
-    setError("Please fill in all address fields.");
-    return;
-  }
-
-  if (!/^\d{6}$/.test(cleanedAddress.pinCode)) {
-    setError("Please enter a valid 6-digit PIN code.");
-    return;
-  }
-
-  try {
-    setSavingAddress(true);
-    setError("");
-    setSuccess("");
-
-    /*
-     * Backend requires fullName and phone along with
-     * the address fields.
-     *
-     * Send both pinCode and pincode to support either
-     * backend naming convention.
-     */
-    const addressPayload = {
-      fullName: customerName.trim(),
-      phone: customerPhone.trim(),
-
-      houseNo: cleanedAddress.houseNo,
-      area: cleanedAddress.area,
-      city: cleanedAddress.city,
-      state: cleanedAddress.state,
-
-      pinCode: cleanedAddress.pinCode,
-      pincode: cleanedAddress.pinCode,
+    const cleanedAddress = {
+      fullName: addressForm.fullName.trim(),
+      phone: addressForm.phone.trim(),
+      houseNo: addressForm.houseNo.trim(),
+      area: addressForm.area.trim(),
+      landmark: addressForm.landmark.trim(),
+      city: addressForm.city.trim(),
+      state: addressForm.state.trim(),
+      pinCode: addressForm.pinCode.trim(),
+      addressType:
+        addressForm.addressType || "Home",
     };
 
-    if (editingAddressId) {
-      await updateAddress(
-        editingAddressId,
-        addressPayload
+    if (
+      !cleanedAddress.fullName ||
+      !cleanedAddress.phone ||
+      !cleanedAddress.houseNo ||
+      !cleanedAddress.area ||
+      !cleanedAddress.city ||
+      !cleanedAddress.state ||
+      !cleanedAddress.pinCode
+    ) {
+      setError(
+        "Please fill in all required address fields."
       );
-
-      setSuccess("Address updated successfully.");
-    } else {
-      await addAddress(addressPayload);
-
-      setSuccess("Address added successfully.");
+      return;
     }
 
-    await loadProfileData();
-    closeAddressModal();
-  } catch (requestError) {
-    console.error(
-      "Failed to save address:",
-      requestError
-    );
+    if (cleanedAddress.fullName.length < 2) {
+      setError(
+        "Please enter a valid recipient name."
+      );
+      return;
+    }
 
-    setError(
-      requestError.message ||
-        "Unable to save your address."
-    );
-  } finally {
-    setSavingAddress(false);
-  }
-};
+    if (!/^\d{10}$/.test(cleanedAddress.phone)) {
+      setError(
+        "Please enter a valid 10-digit mobile number."
+      );
+      return;
+    }
+
+    if (!/^\d{6}$/.test(cleanedAddress.pinCode)) {
+      setError(
+        "Please enter a valid 6-digit PIN code."
+      );
+      return;
+    }
+
+    try {
+      setSavingAddress(true);
+      setError("");
+      setSuccess("");
+
+      /*
+       * Each saved address has its own:
+       * - fullName
+       * - phone
+       * - houseNo
+       * - area
+       * - landmark
+       * - city
+       * - state
+       * - pincode
+       * - addressType
+       *
+       * This means different addresses can have
+       * different recipients and mobile numbers.
+       */
+      const addressPayload = {
+        fullName: cleanedAddress.fullName,
+        phone: cleanedAddress.phone,
+
+        houseNo: cleanedAddress.houseNo,
+        area: cleanedAddress.area,
+        landmark: cleanedAddress.landmark,
+        city: cleanedAddress.city,
+        state: cleanedAddress.state,
+
+        pinCode: cleanedAddress.pinCode,
+        pincode: cleanedAddress.pinCode,
+
+        addressType:
+          cleanedAddress.addressType,
+      };
+
+      if (editingAddressId) {
+        await updateAddress(
+          editingAddressId,
+          addressPayload
+        );
+
+        setSuccess(
+          "Address updated successfully."
+        );
+      } else {
+        await addAddress(addressPayload);
+
+        setSuccess(
+          "Address added successfully."
+        );
+      }
+
+      await loadProfileData();
+
+      setAddressModalOpen(false);
+      setEditingAddressId(null);
+
+      setAddressForm({
+        ...EMPTY_ADDRESS,
+      });
+    } catch (requestError) {
+      console.error(
+        "Failed to save address:",
+        requestError
+      );
+
+      setError(
+        requestError.message ||
+          "Unable to save your address."
+      );
+    } finally {
+      setSavingAddress(false);
+    }
+  };
 
   const handleSetDefault = async (addressId) => {
+    if (!addressId) return;
+
     try {
       setError("");
       setSuccess("");
@@ -403,6 +468,8 @@ export default function Profile() {
   };
 
   const handleDeleteAddress = async (addressId) => {
+    if (!addressId) return;
+
     const shouldDelete = window.confirm(
       "Are you sure you want to delete this address?"
     );
@@ -416,7 +483,9 @@ export default function Profile() {
       await deleteAddress(addressId);
       await loadProfileData();
 
-      setSuccess("Address deleted successfully.");
+      setSuccess(
+        "Address deleted successfully."
+      );
     } catch (requestError) {
       console.error(
         "Failed to delete address:",
@@ -441,16 +510,46 @@ export default function Profile() {
     profile?.number ||
     "Not available";
 
-  const email = profile?.email || "Not added";
+  const email =
+    profile?.email || "Not added";
 
   const getAddressId = (address) => {
-    return address?._id || address?.id;
+    return String(
+      address?._id ||
+        address?.id ||
+        ""
+    );
   };
 
   const isDefaultAddress = (address) => {
     return (
       address?.isDefault === true ||
       address?.default === true
+    );
+  };
+
+  const getAddressType = (address) => {
+    return (
+      address?.addressType ||
+      address?.type ||
+      "Home"
+    );
+  };
+
+  const getAddressName = (address) => {
+    return (
+      address?.fullName ||
+      address?.name ||
+      "Recipient"
+    );
+  };
+
+  const getAddressPhone = (address) => {
+    return (
+      address?.phone ||
+      address?.mobileNumber ||
+      address?.number ||
+      ""
     );
   };
 
@@ -462,6 +561,7 @@ export default function Profile() {
     return [
       address.houseNo,
       address.area,
+      address.landmark,
       address.city,
       address.state,
       address.pinCode ||
@@ -489,17 +589,19 @@ export default function Profile() {
             </h1>
 
             <p className="mt-3 max-w-[520px] text-[13px] leading-6 text-[#6E6670] sm:text-[14px]">
-              Manage your personal information and saved
-              addresses.
+              Manage your personal information and
+              saved addresses.
             </p>
           </div>
 
           {/* Messages */}
-          {error && !profileModalOpen && !addressModalOpen && (
-            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
-              {error}
-            </div>
-          )}
+          {error &&
+            !profileModalOpen &&
+            !addressModalOpen && (
+              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+                {error}
+              </div>
+            )}
 
           {success && (
             <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-[13px] text-green-700">
@@ -683,8 +785,8 @@ export default function Profile() {
                   </h3>
 
                   <p className="mt-2 text-[12px] leading-5 text-[#6E6670]">
-                    View your order history and track your
-                    purchases.
+                    View your order history and track
+                    your purchases.
                   </p>
                 </Link>
 
@@ -715,25 +817,53 @@ export default function Profile() {
                   {loading ? (
                     <div className="mt-3 h-4 w-full animate-pulse rounded bg-[#F3EDF3]" />
                   ) : addresses.length > 0 ? (
-                    <div className="mt-3 space-y-3">
-                      {addresses.slice(0, 2).map((address, index) => (
-                        <div
-                          key={
-                            getAddressId(address) ||
-                            index
-                          }
-                        >
-                          <p className="text-[12px] leading-5 text-[#6E6670]">
-                            {formatAddress(address)}
-                          </p>
+                    <div className="mt-3 space-y-4">
+                      {addresses
+                        .slice(0, 2)
+                        .map((address, index) => (
+                          <div
+                            key={
+                              getAddressId(address) ||
+                              index
+                            }
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[12px] font-semibold text-[#340C48]">
+                                {getAddressName(
+                                  address
+                                )}
+                              </p>
 
-                          {isDefaultAddress(address) && (
-                            <span className="mt-1 inline-block text-[10px] font-semibold text-[#A77D32]">
-                              Default address
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                              <span className="rounded-full bg-[#F0E9F2] px-2 py-0.5 text-[9px] font-semibold text-[#340C48]">
+                                {getAddressType(
+                                  address
+                                )}
+                              </span>
+                            </div>
+
+                            {getAddressPhone(address) && (
+                              <p className="mt-1 text-[10px] font-medium text-[#8A828C]">
+                                {getAddressPhone(
+                                  address
+                                )}
+                              </p>
+                            )}
+
+                            <p className="mt-1 text-[12px] leading-5 text-[#6E6670]">
+                              {formatAddress(
+                                address
+                              )}
+                            </p>
+
+                            {isDefaultAddress(
+                              address
+                            ) && (
+                              <span className="mt-1 inline-block text-[10px] font-semibold text-[#A77D32]">
+                                Default address
+                              </span>
+                            )}
+                          </div>
+                        ))}
                     </div>
                   ) : (
                     <p className="mt-2 text-[12px] leading-5 text-[#6E6670]">
@@ -757,6 +887,11 @@ export default function Profile() {
                     <h2 className="mt-2 font-[var(--font-display)] text-[24px] text-[#340C48]">
                       Saved Addresses
                     </h2>
+
+                    <p className="mt-1 text-[11px] leading-5 text-[#6E6670]">
+                      Each address can have its own
+                      recipient name and mobile number.
+                    </p>
                   </div>
 
                   <button
@@ -777,42 +912,78 @@ export default function Profile() {
                       const addressId =
                         getAddressId(address);
 
+                      const recipientPhone =
+                        getAddressPhone(address);
+
                       return (
                         <div
-                          key={addressId || index}
+                          key={
+                            addressId || index
+                          }
                           className="rounded-xl border border-[#EEE6EE] p-4"
                         >
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="flex gap-3">
+                            <div className="flex min-w-0 gap-3">
                               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F5EBD8] text-[#A77D32]">
                                 <MapPin size={15} />
                               </div>
 
-                              <div>
+                              <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <p className="text-[13px] font-semibold text-[#340C48]">
-                                    Address {index + 1}
+                                    {getAddressName(
+                                      address
+                                    )}
                                   </p>
 
-                                  {isDefaultAddress(address) && (
-                                    <span className="rounded-full bg-[#F0E9F2] px-2 py-1 text-[9px] font-semibold text-[#340C48]">
+                                  <span className="rounded-full bg-[#F0E9F2] px-2 py-1 text-[9px] font-semibold text-[#340C48]">
+                                    {getAddressType(
+                                      address
+                                    )}
+                                  </span>
+
+                                  {isDefaultAddress(
+                                    address
+                                  ) && (
+                                    <span className="rounded-full bg-[#F5EBD8] px-2 py-1 text-[9px] font-semibold text-[#8A6428]">
                                       Default
                                     </span>
                                   )}
                                 </div>
 
-                                <p className="mt-1 max-w-[560px] text-[12px] leading-5 text-[#6E6670]">
-                                  {formatAddress(address)}
+                                {recipientPhone && (
+                                  <p className="mt-1 text-[11px] font-medium text-[#4C444E]">
+                                    {recipientPhone}
+                                  </p>
+                                )}
+
+                                <p className="mt-2 max-w-[560px] text-[12px] leading-5 text-[#6E6670]">
+                                  {formatAddress(
+                                    address
+                                  )}
                                 </p>
+
+                                {address?.landmark && (
+                                  <p className="mt-1 text-[10px] text-[#8A828C]">
+                                    Landmark:{" "}
+                                    {
+                                      address.landmark
+                                    }
+                                  </p>
+                                )}
                               </div>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-3 pl-11 sm:pl-0">
-                              {!isDefaultAddress(address) && (
+                              {!isDefaultAddress(
+                                address
+                              ) && (
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    handleSetDefault(addressId)
+                                    handleSetDefault(
+                                      addressId
+                                    )
                                   }
                                   className="text-[11px] font-semibold text-[#340C48] hover:text-[#C9A45C]"
                                 >
@@ -823,7 +994,9 @@ export default function Profile() {
                               <button
                                 type="button"
                                 onClick={() =>
-                                  openEditAddressModal(address)
+                                  openEditAddressModal(
+                                    address
+                                  )
                                 }
                                 className="flex items-center gap-1 text-[11px] font-semibold text-[#340C48] hover:text-[#C9A45C]"
                               >
@@ -834,7 +1007,9 @@ export default function Profile() {
                               <button
                                 type="button"
                                 onClick={() =>
-                                  handleDeleteAddress(addressId)
+                                  handleDeleteAddress(
+                                    addressId
+                                  )
                                 }
                                 className="flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-700"
                               >
@@ -858,7 +1033,8 @@ export default function Profile() {
                       </p>
 
                       <p className="mt-1 text-[12px] text-[#6E6670]">
-                        Add an address for faster checkout.
+                        Add an address for faster
+                        checkout.
                       </p>
                     </div>
                   )}
@@ -886,7 +1062,10 @@ export default function Profile() {
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
               closeProfileModal();
             }
           }}
@@ -987,16 +1166,20 @@ export default function Profile() {
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-8 backdrop-blur-sm"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
               closeAddressModal();
             }
           }}
         >
-          <div className="relative w-full max-w-[520px] rounded-[20px] bg-[#FFF9F2] p-6 shadow-2xl sm:p-8">
+          <div className="relative w-full max-w-[560px] rounded-[20px] bg-[#FFF9F2] p-6 shadow-2xl sm:p-8">
             <button
               type="button"
               onClick={closeAddressModal}
-              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#340C48]/10 text-[#340C48] hover:bg-[#340C48] hover:text-white"
+              disabled={savingAddress}
+              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#340C48]/10 text-[#340C48] hover:bg-[#340C48] hover:text-white disabled:opacity-50"
             >
               <X size={16} />
             </button>
@@ -1011,16 +1194,75 @@ export default function Profile() {
                 : "Add Address"}
             </h2>
 
+            <p className="mt-2 max-w-[430px] text-[12px] leading-5 text-[#6E6670]">
+              Enter the recipient details for this
+              specific address. Different saved
+              addresses can have different names and
+              mobile numbers.
+            </p>
+
             <form
               onSubmit={handleAddressSubmit}
               className="mt-6 space-y-4"
             >
+              {/* Recipient Details */}
+              <div className="rounded-xl border border-[#E9DFE9] bg-white p-4">
+                <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#A77D32]">
+                  Recipient Details
+                </p>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="address-fullName"
+                      className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
+                    >
+                      Full Name *
+                    </label>
+
+                    <input
+                      id="address-fullName"
+                      name="fullName"
+                      type="text"
+                      value={addressForm.fullName}
+                      onChange={handleAddressInput}
+                      placeholder="Recipient full name"
+                      autoComplete="name"
+                      className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="address-phone"
+                      className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
+                    >
+                      Mobile Number *
+                    </label>
+
+                    <input
+                      id="address-phone"
+                      name="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={addressForm.phone}
+                      onChange={handleAddressInput}
+                      placeholder="10-digit mobile number"
+                      autoComplete="tel"
+                      className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Details */}
               <div>
                 <label
                   htmlFor="houseNo"
                   className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
                 >
-                  House / Flat / Building
+                  House / Flat / Building *
                 </label>
 
                 <input
@@ -1030,6 +1272,7 @@ export default function Profile() {
                   value={addressForm.houseNo}
                   onChange={handleAddressInput}
                   placeholder="Enter house or flat number"
+                  autoComplete="street-address"
                   className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
                 />
               </div>
@@ -1039,7 +1282,7 @@ export default function Profile() {
                   htmlFor="area"
                   className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
                 >
-                  Area / Street
+                  Area / Street *
                 </label>
 
                 <input
@@ -1053,13 +1296,35 @@ export default function Profile() {
                 />
               </div>
 
+              <div>
+                <label
+                  htmlFor="landmark"
+                  className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
+                >
+                  Landmark
+                  <span className="ml-1 font-normal text-[#9A909D]">
+                    (Optional)
+                  </span>
+                </label>
+
+                <input
+                  id="landmark"
+                  name="landmark"
+                  type="text"
+                  value={addressForm.landmark}
+                  onChange={handleAddressInput}
+                  placeholder="Nearby landmark"
+                  className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                />
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label
                     htmlFor="city"
                     className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
                   >
-                    City
+                    City *
                   </label>
 
                   <input
@@ -1069,6 +1334,7 @@ export default function Profile() {
                     value={addressForm.city}
                     onChange={handleAddressInput}
                     placeholder="Enter city"
+                    autoComplete="address-level2"
                     className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
                   />
                 </div>
@@ -1078,7 +1344,7 @@ export default function Profile() {
                     htmlFor="state"
                     className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
                   >
-                    State
+                    State *
                   </label>
 
                   <input
@@ -1088,36 +1354,72 @@ export default function Profile() {
                     value={addressForm.state}
                     onChange={handleAddressInput}
                     placeholder="Enter state"
+                    autoComplete="address-level1"
                     className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
                   />
                 </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="pinCode"
-                  className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
-                >
-                  PIN Code
-                </label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="pinCode"
+                    className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
+                  >
+                    PIN Code *
+                  </label>
 
-                <input
-                  id="pinCode"
-                  name="pinCode"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={addressForm.pinCode}
-                  onChange={handleAddressInput}
-                  placeholder="Enter 6-digit PIN code"
-                  className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
-                />
+                  <input
+                    id="pinCode"
+                    name="pinCode"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={addressForm.pinCode}
+                    onChange={handleAddressInput}
+                    placeholder="6-digit PIN code"
+                    autoComplete="postal-code"
+                    className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="addressType"
+                    className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
+                  >
+                    Address Type
+                  </label>
+
+                  <select
+                    id="addressType"
+                    name="addressType"
+                    value={addressForm.addressType}
+                    onChange={handleAddressInput}
+                    className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] text-[#2B2430] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                  >
+                    <option value="Home">
+                      Home
+                    </option>
+                    <option value="Work">
+                      Work
+                    </option>
+                    <option value="Office">
+                      Office
+                    </option>
+                    <option value="Other">
+                      Other
+                    </option>
+                  </select>
+                </div>
               </div>
 
               {error && (
-                <p className="text-[12px] leading-5 text-red-600">
-                  {error}
-                </p>
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5">
+                  <p className="text-[12px] leading-5 text-red-600">
+                    {error}
+                  </p>
+                </div>
               )}
 
               <button

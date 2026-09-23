@@ -1,125 +1,182 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
-  ArrowLeft,
-  CheckCircle2,
-  Loader2,
-  X,
-} from "lucide-react";
+  msg91VerifyOtp,
+  msg91RetryOtp,
+} from "../../services/msg91";
 
-import { sendOtp, verifyOtp } from "../../services/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-export default function VerifyOtp({
+const RESEND_TIME = 30;
+
+const VerifyOtp = ({
   phone,
   onClose,
   onBack,
   onLoginSuccess,
-}) {
+}) => {
   const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendTimer, setResendTimer] = useState(30);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [resendTimer, setResendTimer] = useState(RESEND_TIME);
 
-  const otpInputRef = useRef(null);
-
-  /* =======================================================
-     AUTO FOCUS OTP INPUT
-  ======================================================= */
-
-  useEffect(() => {
-    otpInputRef.current?.focus();
-  }, []);
-
-  /* =======================================================
-     RESEND TIMER
-  ======================================================= */
-
+  // -----------------------------------------
+  // RESEND TIMER
+  // -----------------------------------------
   useEffect(() => {
     if (resendTimer <= 0) {
       return;
     }
 
     const timer = setInterval(() => {
-      setResendTimer((current) => current - 1);
+      setResendTimer((previous) => {
+        if (previous <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+
+        return previous - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
   }, [resendTimer]);
 
-  /* =======================================================
-     MASK PHONE NUMBER
-  ======================================================= */
-
-  const maskedPhone = phone
-    ? `+91 ${phone.slice(0, 2)}••••••${phone.slice(-2)}`
-    : "";
-
-  /* =======================================================
-     OTP INPUT
-  ======================================================= */
-
-  const handleOtpChange = (event) => {
-    const value = event.target.value
+  // -----------------------------------------
+  // OTP INPUT
+  // -----------------------------------------
+  const handleOtpChange = (e) => {
+    const value = e.target.value
       .replace(/\D/g, "")
       .slice(0, 6);
 
     setOtp(value);
-    setError("");
+
+    if (error) {
+      setError("");
+    }
   };
 
-  /* =======================================================
-     VERIFY OTP
-  ======================================================= */
-
-  const handleVerifyOtp = async (event) => {
-    event.preventDefault();
-
-    setError("");
+  // -----------------------------------------
+  // VERIFY OTP
+  // -----------------------------------------
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
 
     if (otp.length !== 6) {
-      setError("Please enter the 6-digit OTP.");
+      setError("Please enter a valid 6-digit OTP.");
       return;
     }
 
+    setLoading(true);
+    setError("");
+
     try {
-      setLoading(true);
+      // -----------------------------------------
+      // STEP 1: VERIFY OTP WITH MSG91
+      // -----------------------------------------
+      const msg91Response = await msg91VerifyOtp(otp);
 
-      const response = await verifyOtp(phone, otp);
+      // MSG91 Custom Web SDK returns the access
+      // token inside the "message" property.
+      const accessToken =
+        msg91Response?.message ||
+        msg91Response?.token ||
+        msg91Response?.access_token ||
+        msg91Response?.accessToken ||
+        msg91Response?.data?.token ||
+        msg91Response?.data?.access_token ||
+        msg91Response?.data?.accessToken;
 
-      if (!response?.token) {
+      if (!accessToken) {
         throw new Error(
-          "Login successful, but no authentication token was received."
+          "OTP verified, but MSG91 did not return an access token."
         );
       }
 
-      /* Save JWT token */
+      // -----------------------------------------
+      // STEP 2: SEND MSG91 TOKEN TO BACKEND
+      // -----------------------------------------
+      const response = await fetch(
+        `${API_BASE_URL}/api/auth/msg91/verify`,
+        {
+          method: "POST",
 
-      localStorage.setItem(
-        "nmb_token",
-        response.token
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            phone,
+            accessToken,
+          }),
+        }
       );
 
-      /* Save customer information */
+      // -----------------------------------------
+      // STEP 3: READ BACKEND RESPONSE
+      // -----------------------------------------
+      let data;
 
-      if (response.user) {
-        localStorage.setItem(
-          "nmb_user",
-          JSON.stringify(response.user)
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(
+          "Invalid response received from server."
         );
       }
 
-      /* Tell Navbar that login was successful */
+      // -----------------------------------------
+      // STEP 4: HANDLE BACKEND ERROR
+      // -----------------------------------------
+      if (!response.ok) {
+        throw new Error(
+          data?.message || "Unable to complete login."
+        );
+      }
 
-      onLoginSuccess?.(response);
+      // -----------------------------------------
+      // STEP 5: CHECK NMB JWT
+      // -----------------------------------------
+      if (!data?.token) {
+        throw new Error(
+          "Login completed, but application token was not received."
+        );
+      }
 
-      /* Close popup */
+      // -----------------------------------------
+      // STEP 6: SAVE LOGIN DATA
+      // -----------------------------------------
+      localStorage.setItem(
+        "nmb_token",
+        data.token
+      );
 
-      onClose?.();
+      if (data.user) {
+        localStorage.setItem(
+          "nmb_user",
+          JSON.stringify(data.user)
+        );
+      }
+
+      // -----------------------------------------
+      // STEP 7: CALLBACK
+      // -----------------------------------------
+      if (onLoginSuccess) {
+        onLoginSuccess(data);
+      }
+
+      // -----------------------------------------
+      // STEP 8: CLOSE MODAL
+      // -----------------------------------------
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
-      console.error("Verify OTP Error:", error);
-
       setError(
-        error.message ||
+        error?.message ||
           "Invalid or expired OTP. Please try again."
       );
     } finally {
@@ -127,309 +184,194 @@ export default function VerifyOtp({
     }
   };
 
-  /* =======================================================
-     RESEND OTP
-  ======================================================= */
-
+  // -----------------------------------------
+  // RESEND OTP
+  // -----------------------------------------
   const handleResendOtp = async () => {
-    if (resendTimer > 0 || resending) {
+    if (
+      resendTimer > 0 ||
+      resendLoading ||
+      loading
+    ) {
       return;
     }
 
+    setResendLoading(true);
+    setError("");
+
     try {
-      setError("");
-      setResending(true);
+      await msg91RetryOtp();
 
-      await sendOtp(phone);
-
+      // Clear old OTP
       setOtp("");
-      setResendTimer(30);
-      otpInputRef.current?.focus();
-    } catch (error) {
-      console.error("Resend OTP Error:", error);
 
+      // Restart timer
+      setResendTimer(RESEND_TIME);
+    } catch (error) {
       setError(
-        error.message ||
+        error?.message ||
           "Unable to resend OTP. Please try again."
       );
     } finally {
-      setResending(false);
+      setResendLoading(false);
     }
   };
 
-  return (
-    <div
-      className="
-        fixed inset-0 z-[100]
-        flex items-center justify-center
-        bg-black/50
-        px-4
-        backdrop-blur-sm
-      "
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose?.();
-        }
-      }}
-    >
-      <div
-        className="
-          relative
-          w-full max-w-[460px]
-          overflow-hidden
-          rounded-[24px]
-          bg-[#FFF9F2]
-          shadow-2xl
-        "
-      >
-        {/* CLOSE BUTTON */}
+  // -----------------------------------------
+  // MASK PHONE NUMBER
+  // -----------------------------------------
+  const maskedPhone = phone
+    ? `+91 ${phone.slice(0, 2)}******${phone.slice(-2)}`
+    : "";
 
+  // -----------------------------------------
+  // UI
+  // -----------------------------------------
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4">
+      <div className="relative w-full max-w-[430px] rounded-2xl bg-[#FFF9F2] p-7 shadow-2xl">
+
+        {/* CLOSE BUTTON */}
         <button
           type="button"
           onClick={onClose}
-          className="
-            absolute right-5 top-5 z-10
-            flex h-9 w-9
-            items-center justify-center
-            rounded-full
-            bg-[#340C48]/10
-            text-[#340C48]
-            transition
-            hover:bg-[#340C48]
-            hover:text-white
-          "
-          aria-label="Close"
+          disabled={loading}
+          className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-xl text-[#340C48] transition hover:bg-[#340C48]/10 disabled:opacity-50"
         >
-          <X size={18} />
-        </button>
-
-        {/* BACK BUTTON */}
-
-        <button
-          type="button"
-          onClick={onBack}
-          className="
-            absolute left-5 top-5 z-10
-            flex h-9 w-9
-            items-center justify-center
-            rounded-full
-            bg-[#340C48]/10
-            text-[#340C48]
-            transition
-            hover:bg-[#340C48]
-            hover:text-white
-          "
-          aria-label="Back"
-        >
-          <ArrowLeft size={18} />
+          ×
         </button>
 
         {/* HEADER */}
+        <div className="mb-7 text-center">
 
-        <div className="px-8 pb-6 pt-10 text-center sm:px-10">
-          <div
-            className="
-              mx-auto
-              mb-5
-              flex
-              h-14
-              w-14
-              items-center
-              justify-center
-              rounded-full
-              bg-[#340C48]/10
-              text-[#340C48]
-            "
-          >
-            <CheckCircle2 size={28} />
+          {/* ICON */}
+          <div className="mb-4 flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#340C48] text-2xl text-[#C9A45C]">
+              🔐
+            </div>
           </div>
 
-          <p
-            className="
-              mb-3
-              text-[11px]
-              font-semibold
-              uppercase
-              tracking-[0.28em]
-              text-[#C9A45C]
-            "
-          >
-            Verify Mobile
-          </p>
-
+          {/* TITLE */}
           <h2
-            className="
-              font-[var(--font-display)]
-              text-[32px]
-              leading-tight
-              text-[#340C48]
-              sm:text-[36px]
-            "
+            className="text-2xl font-semibold text-[#340C48]"
+            style={{
+              fontFamily:
+                "'Playfair Display', serif",
+            }}
           >
-            Enter OTP
+            Verify OTP
           </h2>
 
-          <p
-            className="
-              mx-auto
-              mt-3
-              max-w-[340px]
-              text-[14px]
-              leading-6
-              text-[#6E6670]
-            "
-          >
-            We've sent a verification code to
+          {/* DESCRIPTION */}
+          <p className="mt-2 text-sm text-[#4C444E]">
+            Enter the 6-digit OTP sent to
           </p>
 
-          <p
-            className="
-              mt-1
-              text-[14px]
-              font-semibold
-              text-[#340C48]
-            "
-          >
+          {/* PHONE */}
+          <p className="mt-1 font-medium text-[#340C48]">
             {maskedPhone}
           </p>
         </div>
 
-        {/* FORM */}
+        {/* OTP FORM */}
+        <form onSubmit={handleVerifyOtp}>
 
-        <form
-          onSubmit={handleVerifyOtp}
-          className="px-8 pb-10 sm:px-10"
-        >
-          <label
-            htmlFor="otp"
-            className="
-              mb-2
-              block
-              text-center
-              text-[13px]
-              font-semibold
-              text-[#2B2430]
-            "
-          >
-            6-Digit OTP
-          </label>
+          {/* OTP INPUT */}
+          <div className="mb-5">
+            <label
+              htmlFor="otp"
+              className="mb-2 block text-sm font-medium text-[#340C48]"
+            >
+              Enter OTP
+            </label>
 
-          <input
-            ref={otpInputRef}
-            id="otp"
-            type="tel"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            value={otp}
-            onChange={handleOtpChange}
-            placeholder="••••••"
-            className="
-              h-[64px]
-              w-full
-              rounded-xl
-              border
-              border-[#DED4E2]
-              bg-white
-              text-center
-              text-[25px]
-              font-semibold
-              tracking-[0.5em]
-              text-[#340C48]
-              outline-none
-              transition
-              placeholder:text-[#C8C0CA]
-              focus:border-[#340C48]
-              focus:ring-2
-              focus:ring-[#340C48]/10
-            "
-          />
+            <input
+              id="otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={otp}
+              onChange={handleOtpChange}
+              disabled={loading}
+              autoFocus
+              placeholder="••••••"
+              className="w-full rounded-xl border border-[#340C48]/20 bg-white px-4 py-4 text-center text-2xl font-semibold tracking-[0.6em] text-[#340C48] outline-none transition focus:border-[#C9A45C] focus:ring-2 focus:ring-[#C9A45C]/20 disabled:opacity-60"
+            />
+          </div>
 
           {/* ERROR */}
-
           {error && (
-            <p
-              className="
-                mt-3
-                text-center
-                text-[13px]
-                leading-5
-                text-red-600
-              "
-            >
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
               {error}
-            </p>
+            </div>
           )}
 
           {/* VERIFY BUTTON */}
-
           <button
             type="submit"
-            disabled={loading}
-            className="
-              mt-6
-              flex
-              h-[54px]
-              w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              bg-[#340C48]
-              px-5
-              text-[14px]
-              font-semibold
-              text-white
-              transition
-              hover:bg-[#4B1D63]
-              disabled:cursor-not-allowed
-              disabled:opacity-60
-            "
+            disabled={
+              loading ||
+              otp.length !== 6
+            }
+            className="flex w-full items-center justify-center rounded-xl bg-[#340C48] px-5 py-3.5 font-semibold text-white transition hover:bg-[#340C48]/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <>
-                <Loader2
-                  size={18}
-                  className="animate-spin"
-                />
+                <span className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                 Verifying...
               </>
             ) : (
-              "Verify & Continue"
+              "Verify OTP"
             )}
           </button>
+        </form>
 
-          {/* RESEND OTP */}
-
-          <div className="mt-5 text-center">
-            <p className="text-[12px] text-[#8A828C]">
-              Didn't receive the OTP?
+        {/* RESEND OTP */}
+        <div className="mt-5 text-center">
+          {resendTimer > 0 ? (
+            <p className="text-sm text-[#4C444E]">
+              Resend OTP{" "}
+              <span className="font-semibold text-[#340C48]">
+                in {resendTimer}s
+              </span>
             </p>
-
+          ) : (
             <button
               type="button"
               onClick={handleResendOtp}
               disabled={
-                resendTimer > 0 || resending
+                resendLoading ||
+                loading
               }
-              className="
-                mt-1
-                text-[13px]
-                font-semibold
-                text-[#340C48]
-                disabled:cursor-not-allowed
-                disabled:text-[#A49BA6]
-              "
+              className="font-semibold text-[#340C48] underline underline-offset-4 transition hover:text-[#C9A45C] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {resending
-                ? "Sending..."
-                : resendTimer > 0
-                ? `Resend OTP in ${resendTimer}s`
+              {resendLoading
+                ? "Resending..."
                 : "Resend OTP"}
             </button>
-          </div>
-        </form>
+          )}
+        </div>
+
+        {/* CHANGE NUMBER */}
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={loading}
+            className="text-sm text-[#4C444E] transition hover:text-[#340C48] disabled:opacity-50"
+          >
+            ← Change mobile number
+          </button>
+        </div>
+
+        {/* SECURITY MESSAGE */}
+        <p className="mt-6 text-center text-xs leading-5 text-[#4C444E]/70">
+          Never share your OTP with anyone.
+        </p>
       </div>
     </div>
   );
-}
+};
+
+export default VerifyOtp;

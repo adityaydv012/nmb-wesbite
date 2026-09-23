@@ -1,14 +1,30 @@
 import { useState } from "react";
-import { X, ArrowRight, Loader2 } from "lucide-react";
 
-import { sendOtp } from "../../services/api";
+import {
+  X,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
+
+import { msg91SendOtp } from "../../services/msg91";
+
 import VerifyOtp from "./VerifyOtp";
 
-export default function Login({ onClose, onLoginSuccess }) {
+export default function Login({
+  onClose,
+  onLoginSuccess,
+}) {
   const [phone, setPhone] = useState("");
+
   const [error, setError] = useState("");
+
   const [loading, setLoading] = useState(false);
+
   const [showOtp, setShowOtp] = useState(false);
+
+  /* =======================================================
+     PHONE NUMBER CHANGE
+     ======================================================= */
 
   const handlePhoneChange = (event) => {
     const value = event.target.value;
@@ -23,27 +39,46 @@ export default function Login({ onClose, onLoginSuccess }) {
     }
   };
 
+  /* =======================================================
+     SEND OTP
+     ======================================================= */
+
   const handleSendOtp = async (event) => {
     event.preventDefault();
 
     setError("");
 
     if (phone.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError(
+        "Please enter a valid 10-digit mobile number."
+      );
+
       return;
     }
 
     try {
       setLoading(true);
 
-      await sendOtp(phone);
+      /*
+       * MSG91 sends the OTP.
+       *
+       * We do NOT call our backend here.
+       */
+      await msg91SendOtp(phone);
 
+      /*
+       * OTP was successfully requested.
+       * Show OTP screen.
+       */
       setShowOtp(true);
     } catch (error) {
-      console.error("Send OTP Error:", error);
+      console.error(
+        "Send OTP Error:",
+        error
+      );
 
       setError(
-        error.message ||
+        error?.message ||
           "Unable to send OTP. Please try again."
       );
     } finally {
@@ -51,19 +86,30 @@ export default function Login({ onClose, onLoginSuccess }) {
     }
   };
 
+  /* =======================================================
+     OTP SCREEN
+     ======================================================= */
+
   if (showOtp) {
     return (
       <VerifyOtp
         phone={phone}
+
         onClose={onClose}
+
         onBack={() => {
           setShowOtp(false);
           setError("");
         }}
+
         onLoginSuccess={onLoginSuccess}
       />
     );
   }
+
+  /* =======================================================
+     LOGIN UI
+     ======================================================= */
 
   return (
     <div
@@ -75,7 +121,9 @@ export default function Login({ onClose, onLoginSuccess }) {
         backdrop-blur-sm
       "
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (
+          event.target === event.currentTarget
+        ) {
           onClose?.();
         }
       }}
@@ -90,7 +138,8 @@ export default function Login({ onClose, onLoginSuccess }) {
           shadow-2xl
         "
       >
-        {/* Close Button */}
+        {/* CLOSE BUTTON */}
+
         <button
           type="button"
           onClick={onClose}
@@ -110,8 +159,17 @@ export default function Login({ onClose, onLoginSuccess }) {
           <X size={18} />
         </button>
 
-        {/* Header */}
-        <div className="px-8 pb-6 pt-10 text-center sm:px-10">
+        {/* HEADER */}
+
+        <div
+          className="
+            px-8
+            pb-6
+            pt-10
+            text-center
+            sm:px-10
+          "
+        >
           <p
             className="
               mb-3
@@ -152,10 +210,15 @@ export default function Login({ onClose, onLoginSuccess }) {
           </p>
         </div>
 
-        {/* Form */}
+        {/* FORM */}
+
         <form
           onSubmit={handleSendOtp}
-          className="px-8 pb-10 sm:px-10"
+          className="
+            px-8
+            pb-10
+            sm:px-10
+          "
         >
           <label
             htmlFor="login-phone"
@@ -205,6 +268,7 @@ export default function Login({ onClose, onLoginSuccess }) {
               type="tel"
               inputMode="numeric"
               autoComplete="tel"
+              maxLength={10}
               placeholder="Enter mobile number"
               value={phone}
               onChange={handlePhoneChange}
@@ -221,7 +285,8 @@ export default function Login({ onClose, onLoginSuccess }) {
             />
           </div>
 
-          {/* Error */}
+          {/* ERROR */}
+
           {error && (
             <p
               className="
@@ -235,7 +300,8 @@ export default function Login({ onClose, onLoginSuccess }) {
             </p>
           )}
 
-          {/* Send OTP */}
+          {/* SEND OTP BUTTON */}
+
           <button
             type="submit"
             disabled={loading}
@@ -265,15 +331,19 @@ export default function Login({ onClose, onLoginSuccess }) {
                   size={18}
                   className="animate-spin"
                 />
+
                 Sending OTP...
               </>
             ) : (
               <>
                 Send OTP
+
                 <ArrowRight size={17} />
               </>
             )}
           </button>
+
+          {/* TERMS */}
 
           <p
             className="

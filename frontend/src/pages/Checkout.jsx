@@ -23,11 +23,15 @@ import {
 } from "../services/api";
 
 const EMPTY_ADDRESS = {
+  fullName: "",
+  phone: "",
   houseNo: "",
   area: "",
+  landmark: "",
   city: "",
   state: "",
   pinCode: "",
+  addressType: "Home",
 };
 
 /* ============================================
@@ -647,144 +651,99 @@ export default function Checkout() {
   const handleAddressInput = (
     event
   ) => {
-    const {
-      name,
-      value,
-    } = event.target;
+    const { name, value } = event.target;
 
-    setAddressForm(
-      (currentForm) => ({
-        ...currentForm,
-
-        [name]:
-          name === "pinCode"
-            ? value
-                .replace(
-                  /\D/g,
-                  ""
-                )
-                .slice(0, 6)
-            : value,
-      })
-    );
+    setAddressForm((currentForm) => ({
+      ...currentForm,
+      [name]:
+        name === "pinCode" || name === "phone"
+          ? value.replace(/\D/g, "").slice(0, name === "pinCode" ? 6 : 10)
+          : value,
+    }));
   };
 
   /* ============================================
      SAVE ADDRESS
      ============================================ */
 
-  const handleSaveAddress =
-    async () => {
-      const cleanedAddress = {
-        houseNo:
-          addressForm.houseNo.trim(),
-
-        area:
-          addressForm.area.trim(),
-
-        city:
-          addressForm.city.trim(),
-
-        state:
-          addressForm.state.trim(),
-
-        pinCode:
-          addressForm.pinCode.trim(),
-      };
-
-      if (
-        !cleanedAddress.houseNo ||
-        !cleanedAddress.area ||
-        !cleanedAddress.city ||
-        !cleanedAddress.state ||
-        !cleanedAddress.pinCode
-      ) {
-        setError(
-          "Please fill in all address fields."
-        );
-
-        return;
-      }
-
-      if (
-        !/^\d{6}$/.test(
-          cleanedAddress.pinCode
-        )
-      ) {
-        setError(
-          "Please enter a valid 6-digit PIN code."
-        );
-
-        return;
-      }
-
-      const customerName =
-        profile?.fullName ||
-        profile?.name ||
-        "";
-
-      const customerPhone =
-        profile?.phone ||
-        profile?.mobileNumber ||
-        profile?.number ||
-        "";
-
-      try {
-        setError("");
-        setSuccess("");
-
-        const response =
-          await addAddress({
-            fullName:
-              customerName,
-
-            phone:
-              customerPhone,
-
-            ...cleanedAddress,
-
-            pincode:
-              cleanedAddress.pinCode,
-          });
-
-        const newAddress =
-          response?.address ||
-          response?.data ||
-          null;
-
-        await loadCheckoutData();
-
-        if (newAddress) {
-          setSelectedAddressId(
-            getAddressId(
-              newAddress
-            )
-          );
-        }
-
-        setAddressForm(
-          EMPTY_ADDRESS
-        );
-
-        setShowNewAddress(
-          false
-        );
-
-        setSuccess(
-          "Address saved successfully."
-        );
-      } catch (requestError) {
-        console.error(
-          "Failed to save checkout address:",
-          requestError
-        );
-
-        setError(
-          requestError.message ||
-            "Unable to save this address."
-        );
-      }
+  const handleSaveAddress = async () => {
+    const cleanedAddress = {
+      fullName: addressForm.fullName.trim(),
+      phone: addressForm.phone.trim(),
+      houseNo: addressForm.houseNo.trim(),
+      area: addressForm.area.trim(),
+      landmark: addressForm.landmark.trim(),
+      city: addressForm.city.trim(),
+      state: addressForm.state.trim(),
+      pinCode: addressForm.pinCode.trim(),
+      addressType: addressForm.addressType || "Home",
     };
+
+    if (
+      !cleanedAddress.fullName ||
+      !cleanedAddress.phone ||
+      !cleanedAddress.houseNo ||
+      !cleanedAddress.area ||
+      !cleanedAddress.city ||
+      !cleanedAddress.state ||
+      !cleanedAddress.pinCode
+    ) {
+      setError("Please fill in all required address fields.");
+      return;
+    }
+
+    if (cleanedAddress.fullName.length < 2) {
+      setError("Please enter a valid recipient name.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(cleanedAddress.phone)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    if (!/^\d{6}$/.test(cleanedAddress.pinCode)) {
+      setError("Please enter a valid 6-digit PIN code.");
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccess("");
+
+      const response = await addAddress({
+        fullName: cleanedAddress.fullName,
+        phone: cleanedAddress.phone,
+        houseNo: cleanedAddress.houseNo,
+        area: cleanedAddress.area,
+        landmark: cleanedAddress.landmark,
+        city: cleanedAddress.city,
+        state: cleanedAddress.state,
+        pincode: cleanedAddress.pinCode,
+        addressType: cleanedAddress.addressType,
+        isDefault: addresses.length === 0,
+      });
+
+      const newAddress =
+        response?.address || response?.data || null;
+
+      await loadCheckoutData();
+
+      if (newAddress) {
+        setSelectedAddressId(getAddressId(newAddress));
+      }
+
+      setAddressForm(EMPTY_ADDRESS);
+      setShowNewAddress(false);
+      setSuccess("Address saved successfully.");
+    } catch (requestError) {
+      console.error("Failed to save checkout address:", requestError);
+      setError(
+        requestError.message ||
+          "Unable to save this address."
+      );
+    }
+  };
 
   /* ============================================
      PLACE ORDER
@@ -818,20 +777,20 @@ export default function Checkout() {
     }
 
     const customerName =
-      profile?.fullName ||
-      profile?.name ||
-      "";
+      currentSelectedAddress?.fullName?.trim() || "";
 
     const customerPhone =
-      profile?.phone ||
-      profile?.mobileNumber ||
-      profile?.number ||
-      "";
+      currentSelectedAddress?.phone?.trim() || "";
 
     if (!customerName || !customerPhone) {
       setError(
-        "Customer details are missing. Please update your profile."
+        "This address is missing recipient name or mobile number. Please select another address or add a new address."
       );
+      return;
+    }
+
+    if (!/^\d{10}$/.test(customerPhone.replace(/^\+91/, ""))) {
+      setError("The selected address has an invalid mobile number.");
       return;
     }
 
@@ -839,19 +798,19 @@ export default function Checkout() {
       setPlacingOrder(true);
 
       const orderDeliveryAddress = {
-        houseNo:
-          currentSelectedAddress.houseNo || "",
-        area:
-          currentSelectedAddress.area || "",
-        city:
-          currentSelectedAddress.city || "",
-        state:
-          currentSelectedAddress.state || "",
+        fullName: currentSelectedAddress.fullName || "",
+        phone: currentSelectedAddress.phone || "",
+        houseNo: currentSelectedAddress.houseNo || "",
+        area: currentSelectedAddress.area || "",
+        landmark: currentSelectedAddress.landmark || "",
+        city: currentSelectedAddress.city || "",
+        state: currentSelectedAddress.state || "",
         pinCode:
           currentSelectedAddress.pinCode ||
           currentSelectedAddress.pincode ||
           currentSelectedAddress.postalCode ||
           "",
+        addressType: currentSelectedAddress.addressType || "Home",
       };
 
       const orderPayload = {
@@ -1407,17 +1366,33 @@ export default function Checkout() {
 
                               <div className="min-w-0 flex-1">
 
-                                <p className="text-[13px] font-semibold text-[#340C48]">
-                                  Address{" "}
-                                  {index +
-                                    1}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-[13px] font-semibold text-[#340C48]">
+                                    {address.fullName || `Address ${index + 1}`}
+                                  </p>
+
+                                  {address.addressType && (
+                                    <span className="rounded-full bg-[#F5EBD8] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#8A6428]">
+                                      {address.addressType}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {address.phone && (
+                                  <p className="mt-1 text-[11px] font-medium text-[#340C48]">
+                                    {address.phone}
+                                  </p>
+                                )}
 
                                 <p className="mt-1 text-[12px] leading-5 text-[#6E6670]">
-                                  {formatAddress(
-                                    address
-                                  )}
+                                  {formatAddress(address)}
                                 </p>
+
+                                {address.landmark && (
+                                  <p className="mt-1 text-[11px] text-[#8A828C]">
+                                    Landmark: {address.landmark}
+                                  </p>
+                                )}
 
                                 {/* DELIVERY BADGE */}
 
@@ -1482,92 +1457,83 @@ export default function Checkout() {
                   <div className="mt-5 border-t border-[#EEE6EE] pt-5">
 
                     <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="fullName" className="mb-2 block text-[11px] font-semibold text-[#2B2430]">
+                          Full Name *
+                        </label>
+                        <input
+                          id="fullName"
+                          name="fullName"
+                          value={addressForm.fullName}
+                          onChange={handleAddressInput}
+                          autoComplete="name"
+                          className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="phone" className="mb-2 block text-[11px] font-semibold text-[#2B2430]">
+                          Mobile Number *
+                        </label>
+                        <input
+                          id="phone"
+                          name="phone"
+                          value={addressForm.phone}
+                          onChange={handleAddressInput}
+                          inputMode="numeric"
+                          maxLength={10}
+                          autoComplete="tel"
+                          placeholder="10-digit mobile number"
+                          className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                        />
+                      </div>
 
                       {[
-                        {
-                          name: "houseNo",
-                          label:
-                            "House / Flat / Building",
-                        },
-                        {
-                          name: "area",
-                          label:
-                            "Area / Street",
-                        },
-                        {
-                          name: "city",
-                          label:
-                            "City",
-                        },
-                        {
-                          name: "state",
-                          label:
-                            "State",
-                        },
-                        {
-                          name: "pinCode",
-                          label:
-                            "PIN Code",
-                        },
-                      ].map(
-                        (field) => (
-                          <div
-                            key={
-                              field.name
-                            }
-                            className={
-                              field.name ===
-                              "pinCode"
-                                ? "sm:col-span-2"
-                                : ""
-                            }
-                          >
+                        { name: "houseNo", label: "House / Flat / Building *" },
+                        { name: "area", label: "Area / Street *" },
+                        { name: "landmark", label: "Landmark" },
+                        { name: "city", label: "City *" },
+                        { name: "state", label: "State *" },
+                        { name: "pinCode", label: "PIN Code *" },
+                      ].map((field) => (
+                        <div key={field.name}>
+                          <label htmlFor={field.name} className="mb-2 block text-[11px] font-semibold text-[#2B2430]">
+                            {field.label}
+                          </label>
+                          <input
+                            id={field.name}
+                            name={field.name}
+                            value={addressForm[field.name]}
+                            onChange={handleAddressInput}
+                            maxLength={field.name === "pinCode" ? 6 : undefined}
+                            inputMode={field.name === "pinCode" ? "numeric" : "text"}
+                            autoComplete={field.name === "pinCode" ? "postal-code" : "street-address"}
+                            className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                          />
+                        </div>
+                      ))}
 
-                            <label
-                              htmlFor={
-                                field.name
-                              }
-                              className="mb-2 block text-[11px] font-semibold text-[#2B2430]"
-                            >
-                              {
-                                field.label
-                              }
-                            </label>
+                      <div>
+                        <label htmlFor="addressType" className="mb-2 block text-[11px] font-semibold text-[#2B2430]">
+                          Address Type
+                        </label>
+                        <select
+                          id="addressType"
+                          name="addressType"
+                          value={addressForm.addressType}
+                          onChange={handleAddressInput}
+                          className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
+                        >
+                          <option value="Home">Home</option>
+                          <option value="Work">Work</option>
+                          <option value="Office">Office</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
 
-                            <input
-                              id={
-                                field.name
-                              }
-                              name={
-                                field.name
-                              }
-                              value={
-                                addressForm[
-                                  field.name
-                                ]
-                              }
-                              onChange={
-                                handleAddressInput
-                              }
-                              maxLength={
-                                field.name ===
-                                "pinCode"
-                                  ? 6
-                                  : undefined
-                              }
-                              inputMode={
-                                field.name ===
-                                "pinCode"
-                                  ? "numeric"
-                                  : "text"
-                              }
-                              className="h-11 w-full rounded-lg border border-[#DED4E2] bg-white px-4 text-[13px] outline-none focus:border-[#340C48] focus:ring-2 focus:ring-[#340C48]/10"
-                            />
-
-                          </div>
-                        )
-                      )}
-
+                    <div className="mt-4 rounded-lg border border-[#E9DFE9] bg-[#FFF9F2] px-3 py-2.5 text-[10px] leading-4 text-[#6E6670]">
+                      The name and mobile number saved here belong to this delivery address. You can use different recipient details for different addresses.
                     </div>
 
                     <button

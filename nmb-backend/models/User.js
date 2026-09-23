@@ -1,50 +1,67 @@
 import mongoose from "mongoose";
 
+/* ============================================
+   ADDRESS SCHEMA
+============================================ */
+
 const addressSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
+      required: true,
       trim: true,
     },
 
     phone: {
       type: String,
+      required: true,
       trim: true,
     },
 
     houseNo: {
       type: String,
+      required: true,
       trim: true,
     },
 
     area: {
       type: String,
+      required: true,
       trim: true,
     },
 
     landmark: {
       type: String,
+      default: "",
       trim: true,
     },
 
     city: {
       type: String,
+      required: true,
       trim: true,
     },
 
     state: {
       type: String,
+      required: true,
       trim: true,
     },
 
     pincode: {
       type: String,
+      required: true,
       trim: true,
     },
 
     addressType: {
       type: String,
-      enum: ["Home", "Work", "Other"],
+      enum: [
+        "Home",
+        "Work",
+        "Office",
+        "Other",
+      ],
       default: "Home",
     },
 
@@ -57,6 +74,10 @@ const addressSchema = new mongoose.Schema(
     _id: true,
   }
 );
+
+/* ============================================
+   USER SCHEMA
+============================================ */
 
 const userSchema = new mongoose.Schema(
   {
@@ -71,12 +92,14 @@ const userSchema = new mongoose.Schema(
     fullName: {
       type: String,
       trim: true,
+      default: "",
     },
 
     email: {
       type: String,
       trim: true,
       lowercase: true,
+      default: "",
     },
 
     addresses: {
@@ -99,6 +122,8 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const User =
+  mongoose.models.User ||
+  mongoose.model("User", userSchema);
 
 export default User;
