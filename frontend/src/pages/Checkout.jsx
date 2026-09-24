@@ -330,10 +330,9 @@ export default function Checkout() {
     setShowNewAddress,
   ] = useState(false);
 
-  const [
-    paymentMethod,
-    setPaymentMethod,
-  ] = useState("cod");
+  // COD is currently unavailable.
+  // Online payment is the only selectable payment method.
+  const paymentMethod = "online";
 
   /* ============================================
      GST SETTINGS
@@ -797,6 +796,9 @@ export default function Checkout() {
     try {
       setPlacingOrder(true);
 
+      // COD is disabled on the checkout UI and cannot be submitted.
+      const checkoutPaymentMethod = "online";
+
       const orderDeliveryAddress = {
         fullName: currentSelectedAddress.fullName || "",
         phone: currentSelectedAddress.phone || "",
@@ -848,7 +850,7 @@ export default function Checkout() {
         deliveryCharge,
         totalAmount:
           grandTotal,
-        paymentMethod,
+        paymentMethod: checkoutPaymentMethod,
       };
 
       /* ============================================
@@ -867,42 +869,6 @@ export default function Checkout() {
         throw new Error(
           "Order was not created. Please try again."
         );
-      }
-
-      /* ============================================
-         COD
-         ============================================ */
-
-      if (paymentMethod === "cod") {
-        setPlacedOrder({
-          ...createdOrder,
-          totalAmount:
-            Number(
-              createdOrder.totalAmount ??
-                orderPayload.totalAmount
-            ),
-          paymentMethod:
-            createdOrder.paymentMethod ||
-            "cod",
-          paymentStatus:
-            createdOrder.paymentStatus ||
-            "pending",
-          deliveryCharge:
-            Number(
-              createdOrder.deliveryCharge ??
-                orderPayload.deliveryCharge
-            ),
-          gst:
-            Number(
-              createdOrder.gst ??
-                orderPayload.gst
-            ),
-        });
-
-        clearCart();
-        setShowOrderSuccess(true);
-        setPlacingOrder(false);
-        return;
       }
 
       /* ============================================
@@ -1579,68 +1545,46 @@ export default function Checkout() {
 
                 <div className="mt-6 space-y-3">
 
-                  {/* COD */}
+                  {/* COD - UNAVAILABLE */}
 
-                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#E9DFE9] p-4">
+                  <div
+                    className="flex items-center gap-3 rounded-xl border border-[#E9DFE9] bg-[#F8F5F8] p-4 opacity-70"
+                    aria-disabled="true"
+                  >
 
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="cod"
-                      checked={
-                        paymentMethod ===
-                        "cod"
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        setPaymentMethod(
-                          event
-                            .target
-                            .value
-                        )
-                      }
+                      disabled
+                      className="cursor-not-allowed"
                     />
 
                     <span>
-
-                      <span className="block text-[13px] font-semibold text-[#340C48]">
+                      <span className="block text-[13px] font-semibold text-[#6E6670]">
                         Cash on Delivery
                       </span>
 
-                      <span className="mt-1 block text-[11px] text-[#6E6670]">
-                        Pay when your order arrives.
+                      <span className="mt-1 block text-[11px] text-[#8A828C]">
+                        Currently unavailable. Please choose online payment.
                       </span>
-
                     </span>
 
-                  </label>
+                  </div>
 
-                  {/* ONLINE */}
+                  {/* ONLINE - AVAILABLE */}
 
-                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#E9DFE9] p-4">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#340C48] bg-[#F8F1F8] p-4 transition">
 
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="online"
-                      checked={
-                        paymentMethod ===
-                        "online"
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        setPaymentMethod(
-                          event
-                            .target
-                            .value
-                        )
-                      }
+                      checked
+                      readOnly
                     />
 
                     <span>
-
                       <span className="block text-[13px] font-semibold text-[#340C48]">
                         Online Payment
                       </span>
@@ -1648,7 +1592,6 @@ export default function Checkout() {
                       <span className="mt-1 block text-[11px] text-[#6E6670]">
                         Pay securely using Razorpay.
                       </span>
-
                     </span>
 
                   </label>
@@ -2036,10 +1979,7 @@ export default function Checkout() {
                 </span>
 
                 <span className="text-[12px] font-semibold capitalize text-[#340C48]">
-                  {placedOrder?.paymentMethod ===
-                  "cod"
-                    ? "Cash on Delivery"
-                    : "Online Payment"}
+                  Online Payment
                 </span>
 
               </div>

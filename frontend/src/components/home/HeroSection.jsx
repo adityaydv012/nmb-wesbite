@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import heroImage from "../../assets/images/hero-bg.png";
-import heroMobileImage from "../../assets/images/hero-mobile.png";
+import heroMobileImage from "../../assets/images/hero-mobile.jpg";
 import readabilityOverlay from "../../assets/images/Overlay Gradient for Readability.png";
 
 function HeroSection() {
@@ -140,29 +140,30 @@ function HeroSection() {
                   EYEBROW
                   ============================================= */}
 
-              <motion.p
-                initial={{
-                  opacity: 0,
-                  y: 15,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.7,
-                  delay: 0.2,
-                  ease: "easeOut",
-                }}
-                className="nmb-hero-eyebrow"
-                style={{
-                  width: "100%",
-                  margin: "0 0 7px",
-                  textAlign: "center",
-                }}
-              >
-                Sweetness, Crafted With Tradition.
-              </motion.p>
+            <motion.p
+  initial={{
+    opacity: 0,
+    y: 15,
+  }}
+  animate={{
+    opacity: 1,
+    y: 0,
+  }}
+  transition={{
+    duration: 0.7,
+    delay: 0.2,
+    ease: "easeOut",
+  }}
+  className="nmb-hero-eyebrow"
+  style={{
+    width: "100%",
+    margin: "0 0 7px",
+    textAlign: "center",
+    color: "#ffffff",
+  }}
+>
+  Sweetness, Crafted With Tradition.
+</motion.p>
 
               {/* =============================================
                   HEADING
