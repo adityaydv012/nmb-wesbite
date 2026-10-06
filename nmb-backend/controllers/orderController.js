@@ -116,18 +116,18 @@ const calculateDeliveryCharge = (
     return 0;
   }
 
-  /* ============================================
+  /* ==========================================
      UTTAR PRADESH = FREE DELIVERY
-     ============================================ */
+     ========================================== */
 
   if (isUttarPradesh(state)) {
     return 0;
   }
 
-  /* ============================================
+  /* ==========================================
      OUTSIDE UP - UP TO 3KG
      ₹100 / KG
-     ============================================ */
+     ========================================== */
 
   if (weight <= DELIVERY_WEIGHT_THRESHOLD) {
     return Math.round(
@@ -135,10 +135,10 @@ const calculateDeliveryCharge = (
     );
   }
 
-  /* ============================================
+  /* ==========================================
      OUTSIDE UP - ABOVE 3KG
      ₹50 / KG
-     ============================================ */
+     ========================================== */
 
   return Math.round(
     weight * DELIVERY_RATE_ABOVE_3_KG
@@ -146,17 +146,261 @@ const calculateDeliveryCharge = (
 };
 
 /* ============================================
+   WEB3FORMS - COMPLETED ORDER EMAIL
+   ============================================ */
+
+const sendCompletedOrderEmail = async (order) => {
+  try {
+    const accessKey =
+      process.env.WEB3FORMS_ACCESS_KEY;
+
+    if (!accessKey) {
+      console.error(
+        "WEB3FORMS_ACCESS_KEY is not configured. Completed order email was not sent."
+      );
+
+      return false;
+    }
+
+    /* ==========================================
+       ORDER ID
+       ========================================== */
+
+    const orderId =
+      order?.orderNumber ||
+      order?.orderId ||
+      order?._id?.toString() ||
+      "N/A";
+
+    /* ==========================================
+       CUSTOMER DETAILS
+       ========================================== */
+
+    const customerName =
+      order?.customerName || "Customer";
+
+    const customerPhone =
+      order?.customerPhone || "Not available";
+
+    /* ==========================================
+       PAYMENT DETAILS
+       ========================================== */
+
+    const paymentMethod =
+      order?.paymentMethod || "Not available";
+
+    const paymentStatus =
+      order?.paymentStatus || "Not available";
+
+    /* ==========================================
+       TOTAL AMOUNT
+       ========================================== */
+
+    const totalAmount = Number(
+      order?.totalAmount ??
+        order?.total ??
+        order?.grandTotal ??
+        0
+    );
+
+    /* ==========================================
+       ORDER ITEMS
+       ========================================== */
+
+    const items = Array.isArray(order?.items)
+      ? order.items
+      : [];
+
+    const itemDetails =
+      items.length > 0
+        ? items
+            .map((item, index) => {
+              const itemName =
+                item?.name ||
+                item?.productName ||
+                item?.product?.name ||
+                `Item ${index + 1}`;
+
+              const quantity = Number(
+                item?.quantity || 1
+              );
+
+              const itemPrice = Number(
+                item?.itemTotal ??
+                  item?.price ??
+                  0
+              );
+
+              return `${index + 1}. ${itemName} | Qty: ${quantity} | ₹${itemPrice.toLocaleString(
+                "en-IN"
+              )}`;
+            })
+            .join("\n")
+        : "No item details available.";
+
+    /* ==========================================
+       DELIVERY ADDRESS
+       ========================================== */
+
+    const address =
+      order?.deliveryAddress || {};
+
+    const deliveryAddress = [
+      address?.houseNo,
+      address?.area,
+      address?.city,
+      address?.state,
+      address?.pinCode,
+    ]
+      .filter(Boolean)
+      .join(", ") || "Not available";
+
+    /* ==========================================
+       ORDER DATE
+       ========================================== */
+
+    const orderDate = order?.createdAt
+      ? new Date(
+          order.createdAt
+        ).toLocaleString("en-IN")
+      : "Not available";
+
+    /* ==========================================
+       EMAIL MESSAGE
+       ========================================== */
+
+    const message = `
+A customer has successfully completed an order.
+
+================================
+ORDER DETAILS
+================================
+
+Order ID: ${orderId}
+Order Status: ${order?.orderStatus || "Placed"}
+Payment Status: ${paymentStatus}
+Order Date: ${orderDate}
+
+================================
+CUSTOMER DETAILS
+================================
+
+Name: ${customerName}
+Phone: ${customerPhone}
+
+================================
+PAYMENT DETAILS
+================================
+
+Payment Method: ${paymentMethod}
+Payment Status: ${paymentStatus}
+Total Amount: ₹${totalAmount.toLocaleString("en-IN")}
+
+================================
+DELIVERY ADDRESS
+================================
+
+${deliveryAddress}
+
+================================
+ORDER ITEMS
+================================
+
+${itemDetails}
+
+================================
+
+This is an automatic order notification
+from the Narayan Misthan Bhandar website.
+
+Please process this order from the admin panel.
+`;
+
+    /* ==========================================
+       SEND EMAIL THROUGH WEB3FORMS
+       ========================================== */
+
+    const response = await fetch(
+      "https://api.web3forms.com/submit",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+
+        body: JSON.stringify({
+          access_key: accessKey,
+
+          subject:
+            `New Order Completed - #${orderId}`,
+
+          from_name:
+            "Narayan Misthan Bhandar Orders",
+
+          message,
+
+          botcheck: "",
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    /* ==========================================
+       CHECK WEB3FORMS RESPONSE
+       ========================================== */
+
+    if (
+      !response.ok ||
+      !result?.success
+    ) {
+      console.error(
+        "Web3Forms completed order email failed:",
+        result
+      );
+
+      return false;
+    }
+
+    console.log(
+      `Completed order email sent successfully for order ${orderId}`
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Completed order email error:",
+      error
+    );
+
+    /*
+     * IMPORTANT:
+     * Email failure should NOT make an already
+     * successful Razorpay payment fail.
+     */
+
+    return false;
+  }
+};
+
+/* ============================================
    CREATE ORDER
    ============================================ */
 
-export const createOrder = async (req, res) => {
+export const createOrder = async (
+  req,
+  res
+) => {
   try {
     const userId = req.userId;
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "Please login to place an order.",
+        message:
+          "Please login to place an order.",
       });
     }
 
@@ -197,10 +441,14 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    if (!Array.isArray(items) || items.length === 0) {
+    if (
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
       return res.status(400).json({
         success: false,
-        message: "At least one product is required.",
+        message:
+          "At least one product is required.",
       });
     }
 
@@ -242,12 +490,15 @@ export const createOrder = async (req, res) => {
       Number(gst || 0);
 
     if (
-      !Number.isFinite(normalizedSubtotal) ||
+      !Number.isFinite(
+        normalizedSubtotal
+      ) ||
       normalizedSubtotal < 0
     ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid subtotal.",
+        message:
+          "Invalid subtotal.",
       });
     }
 
@@ -257,7 +508,8 @@ export const createOrder = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid GST amount.",
+        message:
+          "Invalid GST amount.",
       });
     }
 
@@ -272,7 +524,9 @@ export const createOrder = async (req, res) => {
       calculatedDeliveryCharge;
 
     if (
-      !Number.isFinite(calculatedTotalAmount) ||
+      !Number.isFinite(
+        calculatedTotalAmount
+      ) ||
       calculatedTotalAmount <= 0
     ) {
       return res.status(400).json({
@@ -323,7 +577,9 @@ export const createOrder = async (req, res) => {
        COD ORDER
        ========================================== */
 
-    if (normalizedPaymentMethod === "cod") {
+    if (
+      normalizedPaymentMethod === "cod"
+    ) {
       return res.status(201).json({
         success: true,
 
@@ -362,15 +618,20 @@ export const createOrder = async (req, res) => {
        CREATE RAZORPAY ORDER
        ========================================== */
 
-    const razorpayAmount = Math.round(
-      calculatedTotalAmount * 100
-    );
+    const razorpayAmount =
+      Math.round(
+        calculatedTotalAmount * 100
+      );
 
     if (
-      !Number.isInteger(razorpayAmount) ||
+      !Number.isInteger(
+        razorpayAmount
+      ) ||
       razorpayAmount <= 0
     ) {
-      await Order.findByIdAndDelete(order._id);
+      await Order.findByIdAndDelete(
+        order._id
+      );
 
       return res.status(400).json({
         success: false,
@@ -381,9 +642,11 @@ export const createOrder = async (req, res) => {
 
     const razorpayOrder =
       await razorpay.orders.create({
-        amount: razorpayAmount,
+        amount:
+          razorpayAmount,
 
-        currency: "INR",
+        currency:
+          "INR",
 
         receipt:
           `NMB-${String(order._id)}`,
@@ -476,7 +739,10 @@ export const createOrder = async (req, res) => {
    GET LOGGED-IN USER ORDERS
    ============================================ */
 
-export const getMyOrders = async (req, res) => {
+export const getMyOrders = async (
+  req,
+  res
+) => {
   try {
     const userId = req.userId;
 
@@ -488,11 +754,12 @@ export const getMyOrders = async (req, res) => {
       });
     }
 
-    const orders = await Order.find({
-      userId,
-    }).sort({
-      createdAt: -1,
-    });
+    const orders =
+      await Order.find({
+        userId,
+      }).sort({
+        createdAt: -1,
+      });
 
     return res.status(200).json({
       success: true,
@@ -517,11 +784,15 @@ export const getMyOrders = async (req, res) => {
    GET ONE ORDER
    ============================================ */
 
-export const getOrderById = async (req, res) => {
+export const getOrderById = async (
+  req,
+  res
+) => {
   try {
     const userId = req.userId;
 
-    const { orderId } = req.params;
+    const { orderId } =
+      req.params;
 
     if (!userId) {
       return res.status(401).json({
@@ -531,10 +802,11 @@ export const getOrderById = async (req, res) => {
       });
     }
 
-    const order = await Order.findOne({
-      _id: orderId,
-      userId,
-    });
+    const order =
+      await Order.findOne({
+        _id: orderId,
+        userId,
+      });
 
     if (!order) {
       return res.status(404).json({
@@ -567,165 +839,190 @@ export const getOrderById = async (req, res) => {
    VERIFY RAZORPAY PAYMENT
    ============================================ */
 
-export const verifyRazorpayPayment = async (req, res) => {
-  try {
-    const userId = req.userId;
+export const verifyRazorpayPayment =
+  async (req, res) => {
+    try {
+      const userId =
+        req.userId;
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login to verify payment.",
-      });
-    }
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Please login to verify payment.",
+        });
+      }
 
-    const {
-      orderId,
-      razorpayPaymentId,
-      razorpayOrderId,
-      razorpaySignature,
-    } = req.body;
+      const {
+        orderId,
+        razorpayPaymentId,
+        razorpayOrderId,
+        razorpaySignature,
+      } = req.body;
 
-    /* ==========================================
-       BASIC VALIDATION
-       ========================================== */
+      /* ==========================================
+         BASIC VALIDATION
+         ========================================== */
 
-    if (
-      !orderId ||
-      !razorpayPaymentId ||
-      !razorpayOrderId ||
-      !razorpaySignature
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Incomplete Razorpay payment details.",
-      });
-    }
+      if (
+        !orderId ||
+        !razorpayPaymentId ||
+        !razorpayOrderId ||
+        !razorpaySignature
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Incomplete Razorpay payment details.",
+        });
+      }
 
-    /* ==========================================
-       FIND NMB ORDER
-       ========================================== */
+      /* ==========================================
+         FIND NMB ORDER
+         ========================================== */
 
-    const order = await Order.findOne({
-      _id: orderId,
-      userId,
-    });
+      const order =
+        await Order.findOne({
+          _id: orderId,
+          userId,
+        });
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found.",
-      });
-    }
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Order not found.",
+        });
+      }
 
-    /* ==========================================
-       VERIFY PAYMENT METHOD
-       ========================================== */
+      /* ==========================================
+         VERIFY PAYMENT METHOD
+         ========================================== */
 
-    if (order.paymentMethod !== "online") {
-      return res.status(400).json({
-        success: false,
-        message:
-          "This order is not an online payment order.",
-      });
-    }
+      if (
+        order.paymentMethod !==
+        "online"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "This order is not an online payment order.",
+        });
+      }
 
-    /* ==========================================
-       ALREADY PAID
-       ========================================== */
+      /* ==========================================
+         ALREADY PAID
+         ========================================== */
 
-    if (order.paymentStatus === "paid") {
-      return res.status(200).json({
-        success: true,
-        message: "Payment already verified.",
-        order,
-      });
-    }
+      if (
+        order.paymentStatus ===
+        "paid"
+      ) {
+        return res.status(200).json({
+          success: true,
+          message:
+            "Payment already verified.",
+          order,
+        });
+      }
 
-    /* ==========================================
-       VERIFY RAZORPAY ORDER ID
-       ========================================== */
+      /* ==========================================
+         VERIFY RAZORPAY ORDER ID
+         ========================================== */
 
-    if (
-      !order.razorpayOrderId ||
-      order.razorpayOrderId !== razorpayOrderId
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Razorpay order verification failed.",
-      });
-    }
+      if (
+        !order.razorpayOrderId ||
+        order.razorpayOrderId !==
+          razorpayOrderId
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Razorpay order verification failed.",
+        });
+      }
 
-    /* ==========================================
-       CREATE SERVER-SIDE SIGNATURE
-       ========================================== */
+      /* ==========================================
+         CREATE SERVER-SIDE SIGNATURE
+         ========================================== */
 
-    const generatedSignature =
-      crypto
-        .createHmac(
-          "sha256",
-          process.env.RAZORPAY_KEY_SECRET
-        )
-        .update(
-          `${order.razorpayOrderId}|${razorpayPaymentId}`
-        )
-        .digest("hex");
+      const generatedSignature =
+        crypto
+          .createHmac(
+            "sha256",
+            process.env
+              .RAZORPAY_KEY_SECRET
+          )
+          .update(
+            `${order.razorpayOrderId}|${razorpayPaymentId}`
+          )
+          .digest("hex");
 
-    /* ==========================================
-       COMPARE SIGNATURE
-       ========================================== */
+      /* ==========================================
+         COMPARE SIGNATURE
+         ========================================== */
 
-    if (
-      generatedSignature !==
-      razorpaySignature
-    ) {
-      order.paymentStatus = "failed";
+      if (
+        generatedSignature !==
+        razorpaySignature
+      ) {
+        order.paymentStatus =
+          "failed";
+
+        await order.save();
+
+        return res.status(400).json({
+          success: false,
+          message:
+            "Payment verification failed.",
+        });
+      }
+
+      /* ==========================================
+         PAYMENT VERIFIED
+         ========================================== */
+
+      order.razorpayPaymentId =
+        razorpayPaymentId;
+
+      order.razorpaySignature =
+        razorpaySignature;
+
+      order.paymentStatus =
+        "paid";
 
       await order.save();
 
-      return res.status(400).json({
+      /* ==========================================
+         SEND COMPLETED ORDER EMAIL
+         TO NMB
+         ========================================== */
+
+      await sendCompletedOrderEmail(
+        order
+      );
+
+      /* ==========================================
+         SUCCESS RESPONSE
+         ========================================== */
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Payment verified successfully.",
+        order,
+      });
+    } catch (error) {
+      console.error(
+        "Razorpay Payment Verification Error:",
+        error
+      );
+
+      return res.status(500).json({
         success: false,
         message:
-          "Payment verification failed.",
+          "Unable to verify payment.",
+        error: error.message,
       });
     }
-
-    /* ==========================================
-       PAYMENT VERIFIED
-       ========================================== */
-
-    order.razorpayPaymentId =
-      razorpayPaymentId;
-
-    order.razorpaySignature =
-      razorpaySignature;
-
-    order.paymentStatus = "paid";
-
-    await order.save();
-
-    /* ==========================================
-       SUCCESS RESPONSE
-       ========================================== */
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "Payment verified successfully.",
-      order,
-    });
-  } catch (error) {
-    console.error(
-      "Razorpay Payment Verification Error:",
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-      message:
-        "Unable to verify payment.",
-      error: error.message,
-    });
-  }
-};
+  };

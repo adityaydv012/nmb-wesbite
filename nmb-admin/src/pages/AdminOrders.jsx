@@ -37,6 +37,7 @@ const AdminOrders = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [paymentView, setPaymentView] = useState("completed");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updatingOrderId, setUpdatingOrderId] = useState("");
 
@@ -107,7 +108,23 @@ const AdminOrders = () => {
   };
 
   const getPaymentStatus = (order) => {
-    return order.paymentStatus || "pending";
+    return String(order.paymentStatus || "pending")
+      .trim()
+      .toLowerCase();
+  };
+
+  const getPaymentBucket = (order) => {
+    const paymentStatus = getPaymentStatus(order);
+
+    if (["paid", "completed", "success", "successful"].includes(paymentStatus)) {
+      return "completed";
+    }
+
+    if (["cancelled", "canceled", "failed", "failure"].includes(paymentStatus)) {
+      return "cancelled";
+    }
+
+    return "pending";
   };
 
   const getOrderStatus = (order) => {
@@ -357,9 +374,32 @@ const AdminOrders = () => {
         normalizeStatus(getOrderStatus(order)) ===
           selectedStatus;
 
-      return matchesSearch && matchesStatus;
+      const matchesPaymentView =
+        getPaymentBucket(order) === paymentView;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesPaymentView
+      );
     });
-  }, [orders, searchTerm, selectedStatus]);
+  }, [
+    orders,
+    searchTerm,
+    selectedStatus,
+    paymentView,
+  ]);
+
+  const paymentCounts = useMemo(() => {
+    return orders.reduce(
+      (counts, order) => {
+        const bucket = getPaymentBucket(order);
+        counts[bucket] += 1;
+        return counts;
+      },
+      { pending: 0, cancelled: 0, completed: 0 }
+    );
+  }, [orders]);
 
   const activeOrdersCount = orders.filter((order) =>
     [
@@ -455,6 +495,57 @@ const AdminOrders = () => {
 
         <section className="overflow-hidden rounded-2xl border border-[#eadfda] bg-white shadow-sm">
 
+          {/* PAYMENT TABS */}
+
+          <div className="grid grid-cols-1 border-b border-[#eadfda] sm:grid-cols-3">
+            {[
+              {
+                key: "completed",
+                label: "Successful / Paid",
+                count: paymentCounts.completed,
+                activeClass: "border-green-500 bg-green-50 text-green-700",
+              },
+              {
+                key: "pending",
+                label: "Payment Pending",
+                count: paymentCounts.pending,
+                activeClass: "border-amber-500 bg-amber-50 text-amber-700",
+              },
+              {
+                key: "cancelled",
+                label: "Payment Cancelled / Failed",
+                count: paymentCounts.cancelled,
+                activeClass: "border-red-500 bg-red-50 text-red-700",
+              },
+            ].map((tab) => {
+              const active = paymentView === tab.key;
+
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setPaymentView(tab.key)}
+                  className={`flex items-center justify-center gap-2 border-b-2 px-4 py-4 text-sm font-semibold transition ${
+                    active
+                      ? tab.activeClass
+                      : "border-transparent text-[#81747b] hover:bg-[#fcfaf8] hover:text-[#40134f]"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      active
+                        ? "bg-white/80"
+                        : "bg-[#f7f4f1] text-[#655961]"
+                    }`}
+                  >
+                    {loading ? "—" : tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex flex-col gap-4 border-b border-[#eadfda] p-5 md:flex-row md:items-center md:justify-between">
 
             <div className="relative w-full md:max-w-md">
@@ -507,7 +598,7 @@ const AdminOrders = () => {
               </p>
 
               <p className="mt-1 text-xs text-[#a1959b]">
-                Try changing your search or status filter.
+                Try changing your search, payment tab, or status filter.
               </p>
             </div>
           ) : (
@@ -613,7 +704,7 @@ const AdminOrders = () => {
                               getPaymentStatus(order)
                             )}`}
                           >
-                            {getPaymentStatus(order)}
+                            {getPaymentStatus(order).replace(/[_-]/g, " ")}
                           </span>
                         </td>
 
@@ -783,7 +874,7 @@ const AdminOrders = () => {
                   </div>
 
                   <p className="mt-2 text-sm font-semibold capitalize text-[#241a1c]">
-                    {getPaymentStatus(selectedOrder)}
+                    {getPaymentStatus(selectedOrder).replace(/[_-]/g, " ")}
                   </p>
                 </div>
 
